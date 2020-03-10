@@ -21,7 +21,11 @@
         }
     } else {
         try {
-           printStack($argv[1]);
+            if(isset($argv[2])) {
+                printStack($argv[1], $argv[2]);
+            } else {
+                printStack($argv[1]);
+            }
         } catch (\Exception $e) {
             echo $e->getMessage();
         }

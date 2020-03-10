@@ -79,7 +79,8 @@
         return $results;
     }
 
-    function printStack($file) {
+    function printStack($file, $excludeKeywordsStr = '') {
+        $excludeKeywords = explode(',', $excludeKeywordsStr);
         $colors = new Colors;
 
         $fileHandle = fopen($file, "r");
@@ -93,6 +94,20 @@
                 // find untranslated scripts
                 if(preg_match('/(>([a-zA-Z]){3,})|(>\s([a-zA-Z]){3,})/', $content)) {
                     if(!preg_match('/\{\{[a-zA-Z]/', $content)) {
+                        $flag = false;
+                        // check for excluded keywords
+                        foreach($excludeKeywords as $w) {
+                            if(!empty($w)) {
+                                if(strpos($content, $w, 0)) {
+                                    $flag = true;
+                                }
+                            }
+                        }
+
+                        if($flag) {
+                            continue;
+                        }
+
                         preg_match('/(>([a-zA-Z]){3,})|(>\s([a-zA-Z]){3,})/', $content, $matches);
                         // echo print_r($matches);
                         $column = strpos(trim($content), $matches[0]);

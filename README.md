@@ -1,6 +1,6 @@
 ## To Search in js controllers and php files
 
-`php script_phpjs_templates.php "folder_path OR file_path"`
+`php script_phpjs_templates.php "folder_path OR file_path" "Excel,PDF,CSV"`
 
 ## To Search inside html templates
 
