@@ -82,24 +82,45 @@
     function printStack($file) {
         $colors = new Colors;
 
-        $file = fopen($file, "r");
+        $fileHandle = fopen($file, "r");
         if($file) {
             $i = 1;
-            while(! feof($file)) {
-                $content = fgets($file);
+            $total_matches = 0;
+
+            // line by line check
+            while(! feof($fileHandle)) {
+                $content = fgets($fileHandle);
                 // find untranslated scripts
-                if(preg_match('/>([a-zA-Z]){3,}/', $content)) {
+                if(preg_match('/(>([a-zA-Z]){3,})|(>\s([a-zA-Z]){3,})/', $content)) {
                     if(!preg_match('/\{\{[a-zA-Z]/', $content)) {
-                        preg_match('/>([a-zA-Z]){3,}/', $content, $matches);
+                        preg_match('/(>([a-zA-Z]){3,})|(>\s([a-zA-Z]){3,})/', $content, $matches);
                         // echo print_r($matches);
                         $column = strpos(trim($content), $matches[0]);
                         echo substr(trim($content), $column - 5, $column + 10) . " >>> " . $colors->getColoredString("LINE " . $i . ":$column", 'red', "black") . "\n\n";
+                        $total_matches++;
                     } else {
                     }
                 }
                 $i++;
             }
-            fclose($file);
+
+            // full file check
+            $contents = file_get_contents($file);
+            if(preg_match_all('/>(\n)(\s){1,}[a-zA-Z]/', $contents)) {
+                preg_match_all('/>(\n)(\s){1,}[a-zA-Z]{2,}/', $contents, $matches, PREG_OFFSET_CAPTURE);
+
+                // print_r($matches);
+                for ($i = 0; $i < count($matches[0]); $i++) {
+                    $line = substr_count(substr($contents, 0, $matches[0][$i][1]), "\n") + 1;
+                    // echo $line . "\n";
+                    echo $matches[0][$i][0] . " >>> " . $colors->getColoredString("LINE " . $line, 'red', "black") . "\n\n";
+
+                    $total_matches++;
+                }
+            }
+
+            echo $colors->getColoredString("TOTAL: " . $total_matches . " matches.", 'red', 'green');
+            fclose($fileHandle);
         }
     }
 
@@ -109,26 +130,29 @@
         $file = fopen($file, "r");
         if($file) {
             $i = 1;
+            $total_matches = 0;
             while(! feof($file)) {
                 $content = fgets($file);
                 // find untranslated scripts
-                if(preg_match('/\s=\s"[a-zA-Z](.*)";/', $content) || preg_match('/[a-z]="[a-zA-Z](.*)";/', $content)) {
+                if(preg_match('/(\s=\s"[a-zA-Z](.*)";)|([a-z]="[a-zA-Z](.*)";)|(\s=\s\'[a-zA-Z](.*)\';)|([a-z]=\'[a-zA-Z](.*)\';)/', $content)) {
                     
-                    preg_match('/\s=\s"[a-zA-Z](.*)";/', $content, $matches);
-                    preg_match('/[a-z]="[a-zA-Z](.*)";/', $content, $matches2);
+                    preg_match('/(\s=\s"[a-zA-Z](.*)";)|([a-z]="[a-zA-Z](.*)";)|(\s=\s\'[a-zA-Z](.*)\';)|([a-z]=\'[a-zA-Z](.*)\';)/', $content, $matches);
 
                     if(!empty($matches)) {
                         $column = strpos(trim($content), $matches[0]);
                         echo substr(trim($content), $column - 5, $column + 10) . " >>> " . $colors->getColoredString("LINE " . $i . ":$column", 'red', "black") . "\n";
+                        $total_matches++;
                     }
 
-                    if(!empty($matches2)) {
-                        $column = strpos(trim($content), $matches2[0]);
-                        echo substr(trim($content), $column - 5, $column + 10) . " >>> " . $colors->getColoredString("LINE " . $i . ":$column", 'red', "black") . "\n";
-                    }
+                    // if(!empty($matches2)) {
+                    //     $column = strpos(trim($content), $matches2[0]);
+                    //     echo substr(trim($content), $column - 5, $column + 10) . " >>> " . $colors->getColoredString("LINE " . $i . ":$column", 'red', "black") . "\n";
+                    //     $total_matches++;
+                    // }
                 }
                 $i++;
             }
+            echo $colors->getColoredString("TOTAL: " . $total_matches . " matches.", 'red', 'cyan');
             fclose($file);
         }
     }
