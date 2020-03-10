@@ -1,0 +1,1726 @@
+<section class="content-header">
+    <h1>
+        {{phrase.companiesManagement}}
+    </h1>
+</section>
+<section ng-if="userRole == 'admin'">
+        
+    </section>
+<section ng-if="userRole == 'admin'" class="content" ng-show="views.list && firstLoad==false">
+  <a ng-if="accessrules.insert==1" ng-click="showAdd()" class="btn btn-success btn-flat pull-right marginBottom15 no-print"><i class="fa fa-plus-square" aria-hidden="true"></i> {{phrase.addCompany}}</a> 
+  <a ng-click="prepareMixedImport()" class="btn btn-success btn-flat pull-right marginBottom15 no-print marginRight10"><i class="fa fa-cloud-upload" aria-hidden="true"></i> {{phrase.importCompaniesData}}</a>    
+  <div ng-if="userRole == 'admin'" class="btn-group pull-right no-print marginRight10">
+    <!--EXPORT-->
+    <button ng-if="accessrules.full==1" type="button" class="btn btn-info btn-flat" data-toggle="modal" ng-click="openExportPanel()"
+    data-target="#export-panel">
+    <i class="fa fa-download" aria-hidden="true"></i> {{phrase.Export}}
+    </button>
+    <!--modal-->
+    <div class="modal right fade right-modal-panel" id="export-panel" tabindex="-1" role="dialog" ng-class="{'disabled': exportInProgress==true}">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">{{phrase.Export}}</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="format-panel">
+                        <div class="radio radio-info radio-inline">
+                            <input  type="radio" id="excel"  name="export"
+                                    ng-model="exportInfo.format" value="XLS"
+                                    >
+                            <label for="excel">Excel</label>
+                        </div>
+                        <div class="radio radio-info radio-inline">
+                            <input type="radio" id="pdf"  name="export"
+                                    ng-model="exportInfo.format" value="PDF">
+                            <label for="pdf">PDF</label>
+                        </div>
+                        <div class="radio radio-info radio-inline">
+                            <input type="radio" id="csv" name="export"
+                                    ng-model="exportInfo.format" value="CSV">
+                            <label for="csv">CSV</label>
+                        </div>
+                    </div>
+                    <!--EXPORT FILTERS-->
+                    <div class="filter-panel">
+                        <h4>{{phrase.chooseResultsType}}</h4>
+                        <div class="radio radio-info radio-inline">
+                            <input  type="radio" 
+                                    id="normal"  
+                                    name="normal"
+                                    ng-model="exportInfo.filtered" 
+                                    value="NORMAL">
+                            <label for="normal">{{phrase.all}}</label>
+                        </div>
+                        <div class="radio radio-info radio-inline">
+                            <input type="radio" 
+                                    id="filtered"  
+                                    name="filtered"
+                                    ng-model="exportInfo.filtered" 
+                                    value="FILTERED">
+                            <label for="filtered">{{phrase.useFilters}}</label>
+                        </div>
+                    </div>
+                    <!--div class="export-modality">
+                        <h4>{{phrase.choosewheretoexport}}:</h4>
+                        <div class="radio radio-info radio-inline">
+                            <input type="radio" id="download" ng-model="exportInfo.mode" value="DOWNLOAD" name="exportModality">
+                            <label for="download">{{phrase.Download}}</label>
+                        </div>
+                        <div class="radio radio-info radio-inline">
+                            <input type="radio" id="email" value="EMAIL" ng-model="exportInfo.mode" name="exportModality">
+                            <label for="email">{{phrase.email}}</label>
+                        </div>
+                    </div-->
+                    <div class="filter-panel">
+                        <!--filtri-->
+                    </div>
+                    <h5>{{phrase.selectfieldstoexport}}</h5>
+                    <!--COMPANY-->
+                    <div class="checkbox-panel">
+                            <div class="panel panel-default">
+                                <div class="panel-heading" data-toggle="collapse" data-target="#company">
+                                    <div class="container-fluid">
+                                        <div class="row">
+                                            <div class="col-lg-6 col-md-6 custom-margin">
+                                                <label>{{phrase.referenceCompany}}</label>
+                                            </div>
+                                            <div class="col-lg-6 col-md-6 custom-margin text-right">
+                                                <h6 id='selectedElem'>{{phrase.selectedelements}}: {{selected.companyFields.length}}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="company" class="panel-collapse collapse in">
+                                    <div class="panel-body">
+                                        <div class="container-fluid">
+                                            <div class="row">
+                                                <div class="col-lg-4 col-md-6 d-inline custom-margin"
+                                                    ng-repeat="field in companyFields">
+                                                    <div class="checkbox checkbox-info">
+                                                        <input type="checkbox" class="styled" id="company{{field}}"
+                                                            data-checklist-model="selected.companyFields"
+                                                            data-checklist-value="field"
+                                                            >
+                                                        <label for="company{{field}}">{{field.label}}</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-12 col-md-12">
+                                                    <button
+                                                        class="btn btn-sm float-right c-margin-out" 
+                                                        ng-click="checkAllCompany()">
+                                                        {{phrase.checkAll}}
+                                                    </button>
+                                                    <button 
+                                                        class="btn btn-sm float-right c-margin-out"
+                                                        ng-click="uncheckAllCompany()">
+                                                        {{phrase.uncheckAll}}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <!--!COMPANY-->
+                    <div class="container-fluid">
+                        <div class="row">
+                            <!--div class="col-md-6">
+                                
+                                <div class="checkbox custom-margin">
+                                    <input type="checkbox" class="styled" id="exportPreference" value="save">
+                                    <label for="exportPreference">Salva esportazione</label>
+                                </div>
+                                
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" placeholder="nome esportazione">
+                            </div-->
+                            <div class="col-md-8 input-group">
+                                <span class="input-group-addon" id="basic-addon2">{{phrase.fileName}}</span>
+                                <input type="text" class="form-control" ng-model="exportInfo.filename" aria-describedby="basic-addon2">
+                                <span class="input-group-addon" id="basic-addon2">.{{exportInfo.format | lowercase}}</span>
+                            </div>
+                            <div class="col-md-12 mt-3">
+                                <button 
+                                type="submit"
+                                class="btn btn-info"
+                                ng-click="sendExportRequest()">
+                                    {{phrase.Export}}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--/EXPORT-->
+  </div>
+  <div ng-if="false && userRole == 'admin'" class="btn-group pull-right no-print">
+      <button type="button" class="btn btn-success btn-flat">{{phrase.Import}}</button>
+      <button type="button" class="btn btn-success btn-flat dropdown-toggle" data-toggle="dropdown">
+          <span class="caret"></span>
+          <span class="sr-only">{{phrase.toggleDropdown}}</span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+          <li><a ng-click="import('excel')">{{phrase.ImportExcel}}</a></li>
+          <li><a ng-click="import('csv')">{{phrase.ImportCSV}}</a></li>
+      </ul>
+  </div> 
+  
+    <div class="box col-xs-12" ng-if="importmixedlist">
+        <div class="box-header">
+            <h3 class="box-title"></h3>
+        </div>
+        <div class="box-body table-responsive">
+            {{phrase.selectExcelContactsTBimported}}<br>
+            <input type="file" id="studentsImportMixedFile" name="studentsImportMixedFile" onchange="angular.element(this).scope().studentsFileSelected(this)"><br>
+            <a ng-if="fileisready" ng-click="checkMixedImport()" class="btn btn-success btn-flat marginBottom15 no-print"><i class="fa fa-cloud-upload" aria-hidden="true"></i> {{phrase.checkFileContent}}</a>
+            <br ng-if="showimportresult==true && importerror==false">
+            <span ng-if="showimportresult==true && importerror==false" style="color: orangered"><i class="fa fa-cloud-upload" aria-hidden="true"></i> scorrere a fine lista per approvare l'importazione</span>
+            <div ng-repeat="result in importresult"><span style="color: {{result.color}}">{{result.text}}<br></span></div>
+            <br ng-if="showimportresult==true && importerror==false">
+            <a ng-if="showimportresult==true && importerror==false" ng-click="confirmMixedImport()" class="btn btn-danger btn-flat marginBottom15 no-print"><i class="fa fa-cloud-upload" aria-hidden="true"></i> {{phrase.confirmImport}}</a>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12">
+                {{phrase.companiesEmpoyeesModel}}<br>
+                <span><a href="/customercompanies/employeesmodel" target="_blank" title="{{phrase.companiesEmpoyeesModel}}"> <i class="fa fa-download"></i> {{phrase.downloadEmptyModel}}</a></span><br>
+            </div>
+        </div>
+    </div>
+
+  <div class="box col-xs-12">
+      <div class="box-header">
+          <div class="box-tools">
+            <!--SEARCH-->
+            <ng-include 
+                src="getFilterSearchBarTemplate()"
+                ng-init="filterSection = 'customercompanies'">
+            </ng-include>
+            <!--!SEARCH-->
+          </div>
+      </div>
+      <div class="box-body table-responsive">
+            <dir-pagination-controls class="pull-right" on-page-change="pageChanged(newPageNumber)" template-url="templates/dirPagination.html" ></dir-pagination-controls>          
+            <table class="table table-hover">
+                <tbody><tr>
+                  <th>ID</th>
+                  <th>{{phrase.companyName}}</th>                  
+                  <th>{{phrase.email}}</th>
+                  <th>{{phrase.phoneNo}}</th>
+                  <th>{{phrase.Address}}</th>
+                  <th>{{phrase.numberLocations}}</th>
+                  <th>{{phrase.companyColor}}</th>
+                  <th class="no-print">{{phrase.Operations}}</th>
+              </tr>
+              <tr dir-paginate="customercompany in customercompanies | itemsPerPage:pagesize" total-items="totalItems" current-page="pageNumber">
+                  <td>{{customercompany.id}}</td>
+                  <td>
+                        <i class="fa fa-id-card-o" aria-hidden="true"></i>
+                        <span ng-if="customercompany.pictureprofile"><img ng-src="{{customercompany.pictureprofile}}"></span>                        
+                        <a href="" ng-click="showCompanyProfile(customercompany.id)">{{customercompany.companyname}}</a>
+                  </td>
+                  <td>{{customercompany.email}}</td>
+                  <td>{{customercompany.phoneNo}} <span ng-if="customercompany.phoneNo && customercompany.mobileNo">/</span> {{customercompany.mobileNo}} </span></td>
+                  <td>
+                      {{customercompany.address}}, {{customercompany.cap}} {{customercompany.city}}
+                  </td>
+                  <td>{{customercompany.locationscount}}</td>
+                  <td><span class="{{customercompany.color}}">nome azienda</span></td>
+                  <td class="no-print" nowrap>
+                    <a ng-if="accessrules.alter==1" ng-click="edit(customercompany.id, false)" type="button" class="btn btn-info btn-flat" title="{{phrase.Edit}}" tooltip><i class="fa fa-pencil"></i></a>
+                    <a ng-if="accessrules.full==1 && customercompany.enableweb==1" ng-click="loginAsCompany(customercompany.id)" type="button" class="btn btn-info btn-flat" title="{{phrase.accessCompanyAccount}}" tooltip><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></a>
+                    <a ng-if="accessrules.alter==1" ng-click="remove(customercompany,$index)" type="button" class="btn btn-danger btn-flat" title="{{phrase.Remove}}" tooltip><i class="fa fa-trash-o"></i></a>
+                  </td>
+              </tr>
+              <tr ng-show="!customercompanies.length"><td class="noTableData" colspan="6">{{phrase.noCustomerCompany}}</td></tr>
+          </tbody></table>
+          <dir-pagination-controls class="pull-right" on-page-change="pageChanged(newPageNumber)" template-url="templates/dirPagination.html" ></dir-pagination-controls>
+      </div>
+  </div>
+    <div class="btn-group">
+          <button type="button" class="btn btn-info btn-flat dropdown-toggle" data-toggle="dropdown">
+              {{phrase.totalElements}}: {{totalItems}}
+              <span class="caret"></span>
+              <span class="sr-only">{{phrase.toggleDropdown}}</span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+              <li><a href="" ng-click="changePageSize(12);">{{phrase.view12perPage}} <i ng-if="$root.pagesize==12" class="fa fa-filter"></i></a></li>
+              <li><a href="" ng-click="changePageSize(30);">{{phrase.view30perPage}} <i ng-if="$root.pagesize==30" class="fa fa-filter"></i></a></li>
+              <li><a href="" ng-click="changePageSize(50);">{{phrase.view50perPage}} <i ng-if="$root.pagesize==50" class="fa fa-filter"></i></a></li>
+              <li><a href="" ng-click="changePageSize(100);">{{phrase.view100perPage}} <i ng-if="$root.pagesize==100" class="fa fa-filter"></i></a></li>
+          </ul>     
+    </div>
+</section>
+
+<!-- add -->
+<section class="content" ng-show="views.add">
+  <a ng-click="changeView('list')" class="btn btn-danger btn-flat pull-right marginBottom15"><i class="fa fa-arrow-circle-left" aria-hidden="true"></i> {{phrase.cancelAdd}}</a>  
+  <div class="box col-xs-12">
+    <div class="box-header">
+        <h3 class="box-title">{{phrase.companyAddition}}</h3>
+    </div>
+    <div class="box-body table-responsive">
+      <form class="form-horizontal" method="post" ng-submit="saveAdd()" name="addCompany" role="form" novalidate autocomplete="off">
+        <ng-include src="getCompaniesTemplate()"></ng-include>
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">{{phrase.companyColor}} <a ng-if="form.color" href="" ng-click="clearCompanyColor(true)"><i class="fa fa-eraser" aria-hidden="true"></i></a></label>
+            <div class="col-sm-3">
+                <select id="subjectcolor" class="form-control" ng-model="form.color" style="width:85%;">
+                    <option ng-repeat="color in colors" value="{{color}}">{{color}}</option>
+                </select>
+            </div>
+        </div>        
+        <div class="form-group">
+          <label for="inputPassword3" class="col-sm-2 control-label">{{phrase.employeePrivacy}}</label>
+          <div class="col-sm-10">
+              <textarea class="form-control" id="employeeprivacypolicyadd" rows="4">                  
+              </textarea>
+          </div>
+        </div>          
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+                <b ng-if="duplicates.length>0" ng-hide="createDuplicateCompany==true" style="color: red">{{phrase.companySameName}}<br></b>
+                <b ng-if="duplicatescompanyfiscal.length>0" ng-hide="createDuplicateCompany==true" style="color: red">{{phrase.companySameFiscal}}<br></b>
+                <input type="hidden" name="_token" value="{{CSRF_TOKEN}}">
+                <button type="submit" class="btn btn-default" ng-disabled="isCompanyAddingButtonDisabled() || addCompany.$invalid || parentBirthInvalid || (form.password.length>0 && form.password!=form.password2) || $isUploading">{{phrase.insertCustomerCompany}}</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+<!-- edit -->
+<section class="content" ng-show="views.edit">
+  <a ng-click="cancelEdit()" class="btn btn-danger btn-flat pull-right marginBottom15"><i class="fa fa-arrow-circle-left" aria-hidden="true"></i> {{phrase.cancelEdit}}</a> 
+  <div class="box col-xs-12">
+    <div class="box-header">
+        <h3 class="box-title">{{phrase.editCustomerCompany}}</h3>
+    </div>
+    <div class="box-body table-responsive">
+      <form class="form-horizontal" name="editForm" role="form" ng-submit="saveEdit()" novalidate>
+        <ng-include src="getCompaniesTemplate()"></ng-include>        
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">{{phrase.companyColor}} <a ng-if="form.color" href="" ng-click="clearCompanyColor(false)"><i class="fa fa-eraser" aria-hidden="true"></i></a></label>
+            <div class="col-sm-3">
+                <select id="subjectcoloredit" class="form-control" ng-model="form.color" style="width:85%;">
+                    <option ng-repeat="color in colors" value="{{color}}">{{color}}</option>
+                </select>
+            </div>
+        </div>        
+        <div class="form-group">
+          <label for="inputPassword3" class="col-sm-2 control-label">{{phrase.employeePrivacy}}</label>
+          <div class="col-sm-10">
+              <textarea class="form-control" id="employeeprivacypolicy" rows="4">                  
+              </textarea>
+          </div>
+        </div>        
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <input type="hidden" name="_token" value="{{CSRF_TOKEN}}">
+            <button type="submit" class="btn btn-default" ng-disabled="editForm.$invalid || (form.password.length>0 && form.password!=form.password2) || $isUploading || (form.companyname!=form.originalname && form.allownamechange!=1)">{{phrase.editCustomerCompany}}</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+<!-- import -->
+<section class="content" ng-show="views.import">
+  <a ng-click="changeView('list')" class="btn btn-danger btn-flat pull-right marginBottom15">{{phrase.Return}}</a>  
+  <div class="box col-xs-12">
+    <div class="box-header">
+        <h3 class="box-title">{{phrase.Import}} {{importType}}</h3>
+    </div>
+    <div class="box-body table-responsive">
+      <form class="form-horizontal" ng-upload="saveImported(content)" method="post" action="{{'parents/import/'+importType}}" name="importData" role="form" novalidate>
+        <div class="form-group">
+          <label for="inputPassword3" class="col-sm-2 control-label">{{phrase.fileToImport}}</label>
+          <div class="col-sm-10">
+            <input type="file" name="excelcsv">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <input type="hidden" name="_token" value="{{CSRF_TOKEN}}">
+            <button type="submit" class="btn btn-default" ng-disabled="importData.$invalid || $isUploading">{{phrase.Import}}</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+<!-- profile -->
+<section class="content" ng-show="views.profile">
+    <div class="box-tools text-center">
+        <h3 style="margin: 0px;">
+            <a ng-click="backToList()" type="button" class="btn btn-danger btn-flat pull-left" title="{{phrase.Return}}" tooltip><i class="fa fa-arrow-circle-left" aria-hidden="true"></i></a>
+            {{currcompany.companyname}}
+            <a ng-click="backToList()" type="button" class="btn btn-danger btn-flat pull-right" title="{{phrase.Return}}" tooltip><i class="fa fa-arrow-circle-left" aria-hidden="true"></i></a>
+            <br><br>
+        </h3>
+        <span ng-if="currclass.extensionid>0"><a href="" ng-click="showOverview(currclass.extensionid)">{{phrase.enterExtensionClass}}...</a></span>
+        <span ng-if="currclass.closed==0 && isIntesiveClass==1"><h4><u>{{phrase.isIntensiveClass}}</u></h4></span>
+        <span ng-if="currclass.closed==0 && currclass.allowmodules==1"><h4><u>{{phrase.isClassWithModule}}</u></h4></span>
+		<span ng-if="currclass.suspended==1" style="color: red"><h4><u>{{phrase.classCurrentlySuspendedFrom}} {{currclass.suspendedDate | date : 'dd/M/yyyy'}}</u></h4></span>
+    </div>
+    <div class="box-tools" ng-hide="views.checklist">
+        <div class="col-md-2 bg-yellow" ng-click="showOverview(currcompany.id)" style="cursor: pointer"><i class="fa fa-id-card-o" aria-hidden="true"></i> {{phrase.companyData}}</div>
+        <div class="col-md-2 bg-blue" ng-click="showPurchaseOrders(currcompany.id)" style="cursor: pointer"><i class="fa fa-fw fa-th-list"></i>{{phrase.purchaseOrders}} ({{currcompany.orders}})</div>
+        <div class="col-md-2 bg-red" ng-click="showEmployees(currcompany.id)" style="cursor: pointer"><i class="fa fa-users"></i> Elenco dipendenti ({{currcompany.employees}})</div>
+        <div class="col-md-2 bg-green" ng-click="showClasses(currcompany.id)" style="cursor: pointer"><i class="fa fa-calendar"></i> Corsi svolti ({{currcompany.classes}})</div>
+        <div class="col-md-2 bg-yellow" ng-click="showLocations(currcompany.id)" style="cursor: pointer"><i class="fa fa-home"></i> {{phrase.locationsList}} ({{currcompany.locations}})</div>
+        <div ng-if="accessrules.full==1" class="col-md-2 btn-info" ng-click="showInvoicing(currcompany.id)" style="cursor: pointer"><i class="fa fa-credit-card" aria-hidden="true"></i> {{phrase.Invoicing}}</div>
+    </div>
+</section>
+
+<section class="content" ng-show="views.profile && internalview == 'overview'">
+    <div class="btn-group pull-right marginBottom15">        
+        <span>
+            <button ng-if="false && filterType == 'class'" type="button" class="btn btn-info btn-flat dropdown-toggle" data-toggle="dropdown">
+                Report / Export&nbsp;
+                <span class="caret"></span>
+                <span class="sr-only">{{phrase.toggleDropdown}}</span>
+            </button>
+            <ul ng-if="false && filterType == 'class'" class="dropdown-menu dropdown-menu-right" role="menu">								
+                <li ng-repeat="report in classoverview.reports">
+                    <a href="" ng-click="goReport('class', report.id)" title="{{report.reportname}}">
+                        <span ng-if="report.type=='xls'"><i class="fa fa-file-excel-o"></i>&nbsp;</span>
+                        <span ng-if="report.type=='odt'"><i class="fa fa-file-word-o"></i>&nbsp;</span>
+                        <span ng-if="report.type=='pdf'"><i class="fa fa-file-pdf-o"></i>&nbsp;</span>
+                        <span ng-if="report.testing==1">(TEST) </span>{{report.reportname}}
+                    </a>
+                </li>
+                <li ng-if="classoverview.reports.length>0"><hr style="margin: 5px 10px 5px 20px;"></li>
+                <li><a href="" ng-click="exportClassLessonList(currclass.id)" title="{{phrase.exportLessonsSchedule}}"><span><i class="fa fa-file-excel-o"></i>&nbsp;</span> {{phrase.exportLessonsSchedule}}</a></li>			
+            </ul>
+        </span>
+    </div>    
+    <div class="box col-xs-12">
+        <div class="box-header">
+            <h3 class="box-title">
+                {{phrase.companyData}}<br>
+                <a ng-if="currcompany.enableweb==1" ng-click="loginAsCompany(currcompany.id)" type="button" class="btn btn-info btn-flat"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i> {{phrase.accessCompanyAccount}}</a>
+            </h3>
+        </div>
+        <div class="box-body table-responsive text-only" style="font-size: 18px;">
+                <div class="form-group">
+                    <div class="col-sm-12" style="text-align: right;">
+                        <a ng-hide="role!='admin' || currclass.canceled!=1 || currclass.archived==1" ng-click="reopenClass(currclass)" type="button" class="btn btn-info btn-flat" title="{{phrase.reopenClass}}" tooltip>
+                           {{phrase.reopenClass}} <i class="fa fa-reply clickableicon" aria-hidden="true"></i>
+                        </a>
+                        <a ng-hide="role!='admin' || currclass.closed==1 || classoverview.lessonsheld>0 || classoverview.lessonsrecover>0 || classoverview.lessonstoinser>0" ng-click="cancelClass(currclass)" type="button" class="btn btn-info btn-flat" title="{{phrase.cancelClass}}" tooltip>
+                           {{phrase.cancelClass}} <i class="fa fa-ban clickableicon" aria-hidden="true"></i>
+                        </a>
+                        <a ng-hide="role!='admin' || currclass.closed==1 || currclass.suspended==1" ng-if="accessrules.alter==1" ng-click="prepareSuspend(currclass)" type="button" class="btn btn-info btn-flat" title="Sospensione corso" tooltip>
+                           {{phrase.suspendClass}} <i class="fa fa-pause clickableicon" aria-hidden="true"></i>
+                        </a>
+                        <a ng-hide="role!='admin' || currclass.closed==1 || (classoverview.lessonsheld==0 && classoverview.lessonsrecover==0 && classoverview.lessonstoinser==0)" ng-if="accessrules.alter==1" ng-click="prepareCloseClass(currclass)" type="button" class="btn btn-info btn-flat" title="{{phrase.closeClass}}" tooltip>
+                           {{phrase.closeClass}} <i class="fa fa-ban clickableicon" aria-hidden="true"></i>
+                        </a>
+                        <a ng-hide="!isStandardClass || role!='admin' || settings.classesenableextensions==0 || currclass.extensionid>0 || currclass.closed==1 || currclass.intensiveclass==1 || (classoverview.lessonsheld==0 && classoverview.lessonsrecover==0 && settings.classesenableextensionsniattendance==0)" ng-click="prepareExtendClass(currclass)" type="button" class="btn btn-info btn-flat" title="{{phrase.extendClass}}" tooltip>
+                           {{phrase.extendClass}} <i class="fa fa-external-link clickableicon" aria-hidden="true"></i>
+                        </a>                        
+                        <a ng-if="accessrules.alter==1 && role == 'admin'" ng-hide="currclass.closed==1" ng-click="prepareRemoveClass(currclass)" type="button" class="btn btn-danger btn-flat" title="{{phrase.removeClass}}" tooltip>
+                            {{phrase.removeClass}} <i class="fa fa-trash-o clickableicon" aria-hidden="true"></i>
+                        </a>
+                        <a ng-if="accessrules.alter==1 && role == 'admin' && currclass.archivable == '1'" ng-hide="currclass.closed!=1" ng-click="archiveClass(currclass)" type="button" class="btn btn-warning btn-flat" tooltip>
+                            {{phrase.archiveClass}} <i class="fa fa-archive clickableicon" aria-hidden="true"></i><br>
+                        </a>
+                        <a ng-if="accessrules.alter==1 && role == 'admin' && currclass.archivable == '0'" ng-hide="currclass.closed!=1" ng-click="archiveClassForced(currclass)" type="button" class="btn btn-warning btn-flat" tooltip>
+                            {{phrase.forceArchive}} <i class="fa fa-archive clickableicon" aria-hidden="true"></i><br>
+                        </a>                        
+                        
+                        <br>
+                        <span style="color: gray; font-style: italic;" ng-if="accessrules.alter==1 && currclass.archived==1 && role == 'admin' && currclass.archivable != '1'">{{phrase.notArchivable}}<br></span>
+                        <span style="color: gray; font-style: italic;" ng-if="currclass.closed==1 && currclass.archived==0 && role == 'admin' && currclass.archivable != '1'">{{currclass.unarchivablemessage}}<br></span>
+                    </div>
+                </div>    
+                <div class="box-header text-center" ng-if="currclass.scheduleEnd">
+                    <h3 class="box-title" style="color: orangered; width: 100%;">{{phrase.lessonsScheduledUntil}} {{currclass.scheduleEnd | date: 'dd/MM/yyyy'}}<br></h3>
+                </div>                    
+                <div class="clearfix"></div>
+                <div class="form-group">
+                  <label for="inputPassword3" class="col-sm-3 control-label for-checkbox">{{phrase.company}}</label>
+                  <div class="col-sm-9">
+                      {{currcompany.companyname}} <a ng-if="accessrules.alter==1" ng-click="edit(currcompany.id, true)" type="button" class="btn btn-info btn-flat" title="{{phrase.Edit}}" tooltip><i class="fa fa-pencil"></i></a>
+                      <br>
+                      <img src="{{currcompany.pictureprofile}}">
+                  </div>
+                </div>  
+                <div class="clearfix"></div>
+                <div class="form-group">
+                  <label for="inputPassword3" class="col-sm-3 control-label for-checkbox">{{phrase.Address}}</label>
+                  <div class="col-sm-9">
+                      {{currcompany.address}} {{currcompany.cap}} {{currcompany.city}} ({{currcompany.province}})
+                  </div>
+                </div>                
+                <div class="clearfix" ng-if="currcompany.note"></div>
+                <div class="form-group" ng-if="currcompany.note">
+                  <label for="inputPassword3" class="col-sm-3 control-label for-checkbox">{{phrase.Notes}}/{{phrase.Description}}</label>
+                  <div class="col-sm-9">
+                      <pre>{{currcompany.note}}</pre>
+                  </div>
+                </div>                 
+                <div class="clearfix"></div>
+                <div class="form-group">
+                  <label for="inputPassword3" class="col-sm-3 control-label for-checkbox">{{phrase.companyEmployees}}</label>
+                  <div class="col-sm-9">
+                      {{currcompany.employees}}
+                  </div>
+                </div>
+                <div class="clearfix"></div>
+                <div class="form-group">
+                  <label for="inputPassword3" class="col-sm-3 control-label for-checkbox">{{phrase.activeClasses}}</label>
+                  <div class="col-sm-9">
+                      {{currcompany.classes}}
+                  </div>
+                </div>
+                <div class="clearfix" ng-if="didacticAct && multilevel==1"></div>
+                <div class="form-group" ng-if="didacticAct && multilevel==1"> 
+                  <label for="inputPassword3" class="col-sm-3 control-label for-checkbox">{{phrase.selectLevelClass}}</label>
+                  <div class="col-sm-9">
+                      {{getIntLevelLabel(currcompany.intlevelclass)}}
+                  </div>
+                </div>                
+                <div class="clearfix"></div>
+                <div class="form-group">
+                  <label for="inputPassword3" class="col-sm-3 control-label for-checkbox">{{phrase.accessPermissions}}</label>
+                  <div class="col-sm-9" ng-if='currcompany.enableweb!=1'>
+                      {{phrase.companyAccesDisabled}}
+                  </div>
+                  <div class="col-sm-9" ng-if='currcompany.enableweb==1'>
+                      <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showclassdetails" ng-checked="currcompany.showclassdetails==1"> {{phrase.classesDetails}}<br>
+                      <span ng-if="currcompany.showclassdetails==1"style="margin-left: 20px;"> 
+                        <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.hidevotes" ng-checked="currcompany.hidevotes==1"> {{phrase.hideStudentVotes}}<br>
+                      </span>
+                      <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showstudents" ng-checked="currcompany.showstudents==1"> {{phrase.listCompanyStudents}}<br>
+                      <span ng-if="currcompany.showstudents==1"style="margin-left: 20px;"> 
+                          <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.allowaddstudent" ng-checked="currcompany.allowaddstudent==1"> {{phrase.allowStudCreation}}<br>
+                      </span>
+                      <span ng-if="currcompany.showstudents==1"style="margin-left: 20px;"> 
+                          <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.allowalterstudents" ng-checked="currcompany.allowalterstudents==1"> {{phrase.allowStudEditing}}<br>
+                      </span>                      
+                      <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showoffers" ng-checked="currcompany.showoffers==1"> {{phrase.showCommercialOffers}}<br>
+                      <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showorders" ng-checked="currcompany.showorders==1"> {{phrase.showCommercialOrders}}<br>
+                      <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showpresubscriptions" ng-checked="currcompany.showpresubscriptions==1"> {{phrase.showPresubStatus}}<br>
+                      
+                      <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showinvoices" ng-checked="currcompany.showinvoices==1"> {{phrase.showInbInvoices}}<br>
+                      <span ng-if="currcompany.showinvoices==1"style="margin-left: 20px;"> 
+                          <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showpayinvoices" ng-checked="currcompany.showpayinvoices==1"> {{phrase.showInvPayment}}<br>
+                      </span>
+                      <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showstatistics" ng-checked="currcompany.showstatistics==1"> {{phrase.statisticsPanel}}<br>
+                      <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-change="currcompany.rightschanged=1" ng-model="currcompany.showcreateaccunts" ng-checked="info.showcreateaccunts==1"> {{phrase.creationOtherWeb}}<br>                      
+                      <a ng-disabled="currcompany.rightschanged!=1" ng-click="saveAccessRights(currcompany)" type="button" class="btn btn-info btn-flat"><i class="fa fa-floppy-o" aria-hidden="true"></i> {{phrase.applyAccessRights}}</a>
+                  </div>
+                </div>                
+                <div class="clearfix"></div>
+        </div>                     
+    </div>            
+</section>
+<!-- orders -->
+<section class="content" ng-show="views.profile && internalview == 'orders'" autoscroll="true">
+    <a ng-click="addNewOrder()" class="btn btn-success btn-flat pull-right marginBottom15 no-print"><i class="fa fa-shopping-cart" aria-hidden="true"></i> {{phrase.insertPO}}</a>
+    <div class="box col-xs-12">
+        <div class="box-header">
+            <h3 class="box-title">{{phrase.POlist}}</h3>
+        </div>
+        <div class="box-body table-responsive">
+            <table class="table table-hover">
+                <tbody><tr>
+                    <th>{{phrase.orderNumber}}</th>
+                    <th nowrap>{{phrase.orderDate}}</th>
+                    <th nowrap>{{phrase.studentsGroupClasses}}</th>
+                    <th nowrap>{{phrase.individualStudents}}</th>
+                    <th col-sm-4>{{phrase.Notes}}</th>
+                    <th class='no-print'>{{phrase.Operations}}</th>
+                </tr>
+                <tr ng-class="{'archived': order.closed == 1}" ng-repeat="order in purchaseorders">
+                    <td>{{order.number}}<span ng-if="order.openorder==1"> ({{phrase.openOrder}})</span></td>
+                    <td>{{order.purchasedate | date : 'd/M/y'}}</td>
+                    <td ng-if="order.openorder==1" colspan="2"></td>
+                    <td ng-if="order.openorder==0">
+                        <span ng-if="order.groupstudents">{{order.subject}} / {{order.groupstudents}}<br></span>
+                        <span ng-if="order.groupstudents2">{{order.subject2}} / {{order.groupstudents2}}<br></span>
+                        <span ng-if="order.groupstudents3">{{order.subject3}} / {{order.groupstudents3}}<br></span>
+                        <span ng-if="order.groupstudents4">{{order.subject4}} / {{order.groupstudents4}}<br></span>
+                        <span ng-if="order.groupstudents5">{{order.subject5}} / {{order.groupstudents5}}<br></span>
+                        <span ng-if="order.groupstudents6">{{order.subject6}} / {{order.groupstudents6}}<br></span>
+                    </td>
+                    <td ng-if="order.openorder==0">
+                        <span ng-if="order.one2onestudents">{{order.subject}} / {{order.one2onestudents}}<br></span>
+                        <span ng-if="order.one2onestudents2">{{order.subject2}} / {{order.one2onestudents2}}<br></span>
+                        <span ng-if="order.one2onestudents3">{{order.subject3}} / {{order.one2onestudents3}}<br></span>
+                        <span ng-if="order.one2onestudents4">{{order.subject4}} / {{order.one2onestudents4}}<br></span>                                                
+                        <span ng-if="order.one2onestudents5">{{order.subject5}} / {{order.one2onestudents5}}<br></span>                                                
+                        <span ng-if="order.one2onestudents6">{{order.subject6}} / {{order.one2onestudents6}}<br></span>                                                
+                    </td>
+                    <td col-sm-4><i>{{order.notes}}</i></td>
+                    <td class='no-print'>
+                        <a ng-if="!order.closed" ng-click="editOrder(order)" type="button" class="btn btn-info btn-flat" title="{{phrase.Edit}}" tooltip><i class="fa fa-pencil"></i></a>                        
+                        <a ng-if="!order.closed && order.deletable==true && accessrules.alter==1" ng-click="removeOrder(order)" type="button" class="btn btn-danger btn-flat" title="{{phrase.Remove}}" tooltip><i class="fa fa-trash-o"></i></a>
+                    </td>
+                </tr>
+                <tr ng-show="!purchaseorders.length"><td class="noTableData" colspan="7">{{phrase.NoPO}}</td></tr>
+            </tbody></table>
+        </div>
+    </div>
+</section>
+<!-- add order -->
+<section class="content" ng-show="views.profile && internalview == 'addorder'">
+<a ng-click="internalview = 'orders'" class="btn btn-danger btn-flat pull-right marginBottom15">{{phrase.Cancel}}</a>  
+  <div class="box col-xs-12">
+    <div class="box-header">
+        <h3 class="box-title">{{phrase.insertNewPO}}</h3>
+    </div>
+    <div class="box-body table-responsive">
+      <form class="form-horizontal" name="addOrderform" role="form" ng-submit="savePurchaseOrder()" novalidate>
+        <div class="form-group" ng-class="{'has-error': addOrderform.orderNumber.$invalid}">
+          <label for="locationName" class="col-sm-2 control-label">CIG ** </label>
+          <div class="col-sm-4">
+            <input type="text" name="cigNumber" ng-model="form.cig" ng-minlength="4" class="form-control" placeholder="Codice CIG" ng-required="!(form.number.length)">
+          </div>          
+        </div>          
+        <div class="form-group" ng-class="{'has-error': addOrderform.orderNumber.$invaling-classd}">
+          <label for="locationName" class="col-sm-2 control-label">{{phrase.orderNumber}} ** </label>
+          <div class="col-sm-4">
+              <input type="text" name="orderNumber" ng-model="form.number" ng-minlength="4" class="form-control" placeholder="{{phrase.locationName}}" ng-required="!(form.cig.length)"><br>
+              ** Indicare almeno uno tra CIG e Numero Ordine
+          </div>          
+        </div>
+        <div class="form-group">
+          <label for="locationAddress" class="col-sm-2 control-label for-checkbox">Data ordine</label>
+          <div class="col-sm-10">
+                <datepicker date-format="dd/MM/yyyy" style="max-width:300px;" date-week-start-day="1">
+                    <input name="orderdate" ng-model="form.orderdate" type="text"/>
+                </datepicker>
+          </div>
+        </div>          
+        <div class="form-group">
+          <label for="locationName" class="col-sm-2 control-label for-checkbox">Ordine aperto</label>
+          <div class="col-sm-4">
+            <input type="checkbox" name="openorder" ng-model="form.openorder" ng-true-value="1" ng-false-value="0"> Si tratta di un ordine aperto, a cui possono essere aggiunti studenti liberamente
+          </div>
+        </div>
+        <!-- first language -->          
+        <div class="form-group" ng-hide="form.openorder==1">
+          <label for="locationAddress" class="col-sm-6 control-label for-checkbox"></label>
+          <label for="locationAddress" class="col-sm-3 control-label for-checkbox" style="text-align: left;">{{phrase.studentsGroupClasses}}</label>
+          <label for="locationAddress" class="col-sm-3 control-label for-checkbox" style="text-align: left;">{{phrase.individualStudents}}</label>
+          <label for="locationAddress" class="col-sm-2 control-label for-checkbox">{{phrase.Subject}} #1</label>
+          <div class="col-sm-4">
+              <select ng-model="form.teaching1" ng-required="form.openorder!=1">
+                  <option></option>
+                  <option ng-repeat="teaching in currcompany.teachings" value="{{teaching.id}}">{{teaching.subjectTitle}}</option>
+              </select>
+          </div>
+          <div class="col-sm-3">
+              <input type="number" size="2" ng-model="form.groupstudents1" placeholder="{{phrase.studentsGroupClasses}}">
+          </div>          
+          <div class="col-sm-3">
+              <input type="number" size="2" ng-model="form.one2onestudents1" placeholder="{{phrase.individualStudents}}">
+          </div>                    
+        </div>
+        <!-- second language -->
+        <div class="form-group" ng-hide="form.openorder==1 || !form.teaching1">
+          <label for="locationAddress" class="col-sm-2 control-label for-checkbox">{{phrase.Subject}} #2</label>
+          <div class="col-sm-4">
+              <select ng-model="form.teaching2">
+                  <option></option>
+                  <option ng-repeat="teaching in currcompany.teachings" value="{{teaching.id}}">{{teaching.subjectTitle}}</option>
+              </select>
+          </div>
+          <div ng-show="form.teaching2" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.groupstudents2" placeholder="{{phrase.studentsGroupClasses}}">
+          </div>          
+          <div ng-show="form.teaching2" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.one2onestudents2" placeholder="{{phrase.individualStudents}}">
+          </div>                    
+        </div>          
+        <!-- third language -->
+        <div class="form-group" ng-hide="form.openorder==1 || !form.teaching2">
+          <label for="locationAddress" class="col-sm-2 control-label for-checkbox">{{phrase.Subject}} #3</label>
+          <div class="col-sm-4">
+              <select ng-model="form.teaching3">
+                  <option></option>
+                  <option ng-repeat="teaching in currcompany.teachings" value="{{teaching.id}}">{{teaching.subjectTitle}}</option>
+              </select>
+          </div>
+          <div ng-show="form.teaching3" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.groupstudents3" placeholder="{{phrase.studentsGroupClasses}}">
+          </div>          
+          <div ng-show="form.teaching3" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.one2onestudents3" placeholder="{{phrase.individualStudents}}">
+          </div>                    
+        </div>
+        <!-- fourth language -->
+        <div class="form-group" ng-hide="form.openorder==1 || !form.teaching3">
+          <label for="locationAddress" class="col-sm-2 control-label for-checkbox">{{phrase.Subject}} #4</label>
+          <div class="col-sm-4">
+              <select ng-model="form.teaching4">
+                  <option></option>
+                  <option ng-repeat="teaching in currcompany.teachings" value="{{teaching.id}}">{{teaching.subjectTitle}}</option>
+              </select>
+          </div>
+          <div ng-show="form.teaching4" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.groupstudents4" placeholder="{{phrase.studentsGroupClasses}}">
+          </div>          
+          <div ng-show="form.teaching4" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.one2onestudents4" placeholder="{{phrase.individualStudents}}">
+          </div>                    
+        </div>
+        <!-- fifth language -->
+        <div class="form-group" ng-hide="form.openorder==1 || !form.teaching4">
+          <label for="locationAddress" class="col-sm-2 control-label for-checkbox">{{phrase.Subject}} #5</label>
+          <div class="col-sm-4">
+              <select ng-model="form.teaching5">
+                  <option></option>
+                  <option ng-repeat="teaching in currcompany.teachings" value="{{teaching.id}}">{{teaching.subjectTitle}}</option>
+              </select>
+          </div>
+          <div ng-show="form.teaching5" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.groupstudents5" placeholder="{{phrase.studentsGroupClasses}}">
+          </div>          
+          <div ng-show="form.teaching5" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.one2onestudents5" placeholder="{{phrase.individualStudents}}">
+          </div>                    
+        </div>     
+        <!-- six language -->
+        <div class="form-group" ng-hide="form.openorder==1 || !form.teaching5">
+          <label for="locationAddress" class="col-sm-2 control-label for-checkbox">{{phrase.Subject}} #6</label>
+          <div class="col-sm-4">
+              <select ng-model="form.teaching6">
+                  <option></option>
+                  <option ng-repeat="teaching in currcompany.teachings" value="{{teaching.id}}">{{teaching.subjectTitle}}</option>
+              </select>
+          </div>
+          <div ng-show="form.teaching6" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.groupstudents6" placeholder="{{phrase.studentsGroupClasses}}">
+          </div>          
+          <div ng-show="form.teaching6" class="col-sm-3">
+              <input type="number" size="2" ng-model="form.one2onestudents6" placeholder="{{phrase.individualStudents}}">
+          </div>                    
+        </div>
+        <div class="form-group">
+          <label for="position" class="col-sm-2 control-label">{{phrase.Notes}}</label>
+          <div class="col-sm-10">
+                <textarea type="text" name="note" ng-model="form.notes" class="form-control" placeholder="Note" rows="6"></textarea>
+          </div>
+        </div>        
+        <div class="form-group">
+          <label for="position" class="col-sm-2 control-label">Condizioni economiche</label>
+          <div class="col-sm-10">              
+              <select name="paymenttermid" ng-model="form.paymenttermid" class="form-control">
+                  <option ng-repeat="condition in purchaseconditions" value="{{condition.id}}">{{condition.rifcondizioni}}</option>
+              </select>                
+          </div>
+        </div>                  
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" ng-if="!form.id" class="btn btn-default" ng-disabled="addOrderform.$invalid">{{phrase.insertPO}}</button>
+                <button type="submit" ng-if="form.id" class="btn btn-default" ng-disabled="addOrderform.$invalid">{{phrase.editPO}}</button>
+          </div>
+        </div>		        
+      </form>
+    </div>
+  </div>
+</section>
+<!-- employees -->
+<section class="content" ng-show="views.profile && internalview == 'employees'" autoscroll="true">
+    <a ng-click="prepareImport()" class="btn btn-success btn-flat pull-right marginBottom15 no-print"><i class="fa fa-cloud-upload" aria-hidden="true"></i> {{phrase.importCompanyData}}</a>    
+    <div class="box col-xs-12" ng-if="importlist">
+        <div class="box-header">
+            <h3 class="box-title"></h3>
+        </div>
+        <div class="box-body table-responsive">
+            {{phrase.selectExcelContactsTBimported}}<br>
+            <input type="file" id="studentsImportFile" name="studentsImportFile" onchange="angular.element(this).scope().studentsFileSelected(this)"><br>
+            <a ng-if="fileisready" ng-click="checkImport()" class="btn btn-success btn-flat marginBottom15 no-print"><i class="fa fa-cloud-upload" aria-hidden="true"></i> {{phrase.checkFileContent}}</a>
+            <br>
+            <span ng-if="showimportresult==true && importerror==false && importresult.length>20" style="color: orangered"><i class="fa fa-info-circle" aria-hidden="true"></i> scorrere a fine lista per approvare l'importazione</span>
+            <div ng-repeat="result in importresult"><span style="color: {{result.color}}">{{result.text}}<br></span></div>
+            <br>
+            <span ng-if="importresult.length>0 && newexisting==true" style="color: orangered">
+                Attenzione! Per gli studenti evidenziati in giallo &egrave; stata trovata un'utenza gi&agrave; presente nel sistema con lo stesso nome ma senza altre informazioni che possano far ritenere con certezza che si tratti della stessa persona.<br>
+                Il sistema quindi creer&agrave; una nuova utenza per lo studente aziendale, a meno che preventivamente non si modifichino queste utenze per fra si che almeno la mail o il numero di cellulare corrispondano.
+                <br>
+            </span>
+            <span ng-if="showimportresult==true && importerror==false">
+                <input type="checkbox" id="studentsEnableAccount" name="studentsEnableAccount" ng-false-value="0" ng-true-value="1" ng-model="$parent.$parent.studentsEnableAccount"> <label for="studentsEnableAccount">Attiva l'accesso web per gli studenti importati</label><br>
+                <input type="checkbox" id="studentsActivateApp" name="studentsActivateApp" ng-false-value="0" ng-true-value="1" ng-model="$parent.$parent.studentsActivateApp"> <label for="studentsActivateApp">Invia SMS di invito all'App per gli studenti con numero di cellulare</label><br>
+            </span>
+            <a ng-if="showimportresult==true && importerror==false" ng-click="confirmImport()" class="btn btn-danger btn-flat marginBottom15 no-print"><i class="fa fa-cloud-upload" aria-hidden="true"></i> {{phrase.confirmImport}}</a>
+        </div>        
+    </div>
+    <div class="form-group text-right">
+        <div class="col-sm-12">
+            {{phrase.companiesEmpoyeesModel}}<br>
+            <span><a href="/customercompanies/employeesmodel" title="{{phrase.companiesEmpoyeesModel}}"> <i class="fa fa-download"></i> {{phrase.downloadEmptyModel}}</a></span><br>
+        </div>
+    </div>    
+    <div class="box col-xs-12">
+        <div class="box-header">
+            <h3 class="box-title">{{phrase.companyEmployeesList}}</h3>
+        </div>
+        <div class="box-body table-responsive">
+            <table class="table table-hover">
+                <tbody><tr>
+                    <th>ID</th>
+                    <th>{{phrase.FullName}}</th>
+                    <th>{{phrase.email}}</th>
+                    <th>{{phrase.phoneNo}}</th>
+                    <th>{{phrase.studentCourses}}</th>
+                    <th ng-hide="!didacticAct">{{phrase.levelReached}}</th>
+                    <th class='no-print'>{{phrase.Operations}}</th>
+                </tr>
+                <tr ng-class="{'archived': student.disabled == '1' || student.enrollmentend}" ng-repeat="student in companyemployees">
+                    <td>{{student.id}}</td>
+                    <td>
+                        <span ng-if="student.appconnected==1" tooltip title="{{phrase.appConnected}}"><i class="fa fa-lg fa-mobile"></i>&nbsp;</span>
+                        <span ng-if="student.appconnected==0 && student.appinvite" tooltip title="{{phrase.appInviteSent | sprintf:student.appinvite}}"><i class="fa fa-spinner fa-spin"></i>&nbsp;</span>                        
+                        <a href="" ng-click="studentProfile( student.id )">
+                            <span ng-if="student.pictureprofile"><img ng-src="{{student.pictureprofile}}"></span>
+                            {{student.fullName}}
+                        </a>
+                    </td>
+                    <td>{{student.email}}</td>
+                    <td>
+                        {{student.phoneNo}} <span ng-if="student.phoneNo && student.mobileNo">/</span> {{student.mobileNo}} </span>
+                    </td>
+                    <td title="{{student.classes}}">
+                        <span ng-repeat="class in student.classes">{{class.className}}{{$last ? '' : ', '}}</span>
+                        <span ng-if="student.classes == ''"><i>{{phrase.None}}</i></span>
+                    </td>
+                    <td ng-hide="!didacticAct">
+                        <span ng-if="student.levels.length==0">--{{phrase.notAssigned}}--</span>
+                        <span ng-if="student.levels.length>0" ng-repeat="level in student.levels">
+                            {{level.teaching}} - {{level.internallevel}}<br>
+                        </span>
+                    </td>
+                    <td class='no-print'>
+                        <li class="dropdown btn-group" style="list-style-type: none;" ng-if="false">
+                            <button type="button" class="btn btn-info btn-flat dropdown-toggle" data-toggle="dropdown">                                
+                                {{phrase.menu}} <span class="caret"></span>
+                                <span class="sr-only">{{phrase.toggleDropdown}}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                                <li style="text-align: center; color: gray; border-bottom: 1px solid lightgray; text-transform: uppercase">{{student.fullName}}</li>
+                                <li ng-if="student.disabled == 0"><a href="" ng-click="attendance(student.id, 1)"><i class="fa fa-eye btn btn-info"></i> {{phrase.Attendance}} {{student.fullName}}</a></li>
+                                <li ng-if="student.disabled == 0"><a href="" ng-click="showClasses(student.id)"><i class="fa fa-sitemap btn btn-info"></i> {{phrase.classesEnrollmentTo}}</a></li>
+                                <li ng-if="userRole == 'admin' && accessrules.alter==1"><a href="" ng-click="edit(student.id)"><i class="fa fa-pencil btn btn-info"></i> {{phrase.Edit}}</a></li>
+                                <li ng-if="userRole == 'admin' && accessrules.alter==1 && didacticAct"><a href="" ng-click="editLevels(student.id)"><i class="fa fa-book btn btn-info"></i> {{phrase.levelManagement}}</a></li>
+                                <li ng-if="userRole == 'admin' && student.disabled == 0 && accessrules.full==1"><a href="" ng-click="sendInvitation(student.id)"><i class="fa fa-wifi btn btn-warning"></i> {{phrase.sendAppInstallation}}</a></li>
+                                <li ng-if="userRole == 'admin' && student.disabled == 0 && accessrules.full==1"><a href="" ng-click="sendTestNotitfication(student.id)" ng-show="student.appconnected"><i class="fa fa-paper-plane"></i> {{phrase.sendtestnotify}}</a></li>
+                                <li ng-if="userRole == 'admin' && student.disabled == 0 && accessrules.alter==1"><a href="" ng-click="remove(student,$index)" type="button"><i class="fa fa-trash-o btn btn-danger"></i> {{student.fullName}}, {{phrase.removeOrDisableStudent | lowercase}}</a></li>
+                            </ul>
+                        </li>
+                    </td>
+                </tr>
+                <tr ng-show="!companyemployees.length"><td class="noTableData" colspan="7">{{phrase.noEmployee}}</td></tr>
+            </tbody></table>
+        </div>
+    </div>
+</section>
+<!-- company classes -->
+<section class="content" ng-show="views.profile && internalview == 'classes'" autoscroll="true">
+    <div class="box col-xs-12">
+        <div class="box-header">
+            <h3 class="box-title">{{phrase.businessClassesActivated}}</h3>
+        </div>
+        <div class="box-body table-responsive">
+            <table class="table table-hover">
+                <tbody><tr>
+                    <th>{{phrase.Code}}</th>
+                    <th nowrap>{{phrase.FullName}}</th>
+                    <th nowrap>{{phrase.classStartDate}}</th>
+                    <th>{{phrase.duration}}</th>
+                    <th nowrap>{{phrase.participants}}</th>
+                    <th col-sm-4>{{phrase.Notes}}</th>
+                    <th class='no-print'>{{phrase.Operations}}</th>
+                </tr>
+                <tr ng-class="{'archived': class.closed == '1'}" ng-repeat="class in companyclasses">
+                    <td>{{class.code}}</td>
+                    <td>{{class.className}}</td>
+                    <td>{{class.startDate | date : 'd/M/y'}}</td>
+                    <td>{{class.hours}} ore</td>
+                    <td>
+                        <span ng-if="class.students.length==0"><i>{{phrase.None}}</i></span>
+                        <span ng-repeat="student in class.students">{{student.fullName}}{{$last ? '' : ', '}}</span>
+                    </td>
+                    <td col-sm-4><i>{{order.notes}}</i></td>
+                    <td class='no-print'></td>
+                </tr>
+                <tr ng-show="!companyclasses.length"><td class="noTableData" colspan="7">{{phrase.noClassesActivated}}</td></tr>
+            </tbody></table>
+        </div>
+    </div>
+</section>
+<!-- locations -->
+<section class="content" ng-show="views.profile && internalview == 'locations'" autoscroll="true">
+    <a ng-if="accessrules.full==1" ng-click="showAddLocation()" class="btn btn-success btn-flat pull-right marginBottom15">{{phrase.addNewLocation}}</a>  
+    <div class="box col-xs-12">
+        <div class="box-header">
+            <h3 class="box-title" style="margin-bottom: 0px; padding-bottom: 0px;">{{phrase.companyLocations}}</h3>
+            <div class="clearfix"></div>
+            <i style="margin-left: 10px;">{{phrase.companyPlaces}}</i>
+        </div>
+        <div class="box-body table-responsive">
+            <table class="table table-hover">
+                <tbody><tr>
+                    <th>{{phrase.location}}</th>
+                    <th>{{phrase.Address}}</th>
+                    <th>{{phrase.classroomProximity}}</th>
+                    <th>{{phrase.classroomTravelCostClass}}</th>
+                    <th class='no-print'>{{phrase.Operations}}</th>
+                </tr>
+                <tr ng-class="{'archived': location.archived == '1'}" ng-repeat="location in companylocations">
+                    <td>
+                        <i ng-if="location.headquarter==1" class="fa fa-building-o" aria-hidden="true"></i>
+                        {{location.location}}<br>
+                        <span ng-if="location.headquarter==1"><i>{{phrase.locationHeadquarter}}</i></span>
+                    </td>
+                    <td>
+                        {{location.address}}
+                        <span ng-if="location.external==1" title="{{phrase.externalLocationNoClassrooms}}"> <i class="fa fa-external-link"></i></span>
+                    </td>
+                    <td>
+                        <span ng-if="location.proximitylevel">{{phrase.classroomProximityShort}} {{location.proximitylevel}}</span>
+                    </td>
+                    <td>{{location.travelclass}}</td>
+                    <td class='no-print' nowrap>
+                        <a ng-if="accessrules.alter==1 && (!location.headquarter || location.headquarter!=1)" ng-click="editLocation(location)" type="button" class="btn btn-info btn-flat" title="{{phrase.Edit}}" tooltip><i class="fa fa-pencil"></i></a>
+                        <a ng-if="accessrules.alter==1 && location.headquarter==1" ng-click="edit(location.customercompanyid, false, true)" type="button" class="btn btn-info btn-flat" title="{{phrase.Edit}}" tooltip><i class="fa fa-pencil"></i></a>
+                        <a ng-if="accessrules.alter==1 && (!location.headquarter || location.headquarter!=1)" ng-click="removeLocation(location,$index)" type="button" class="btn btn-danger btn-flat" title="{{phrase.Remove}}" tooltip><i class="fa fa-trash-o"></i></a>
+                    </td>
+                </tr>
+                <tr ng-show="!companylocations.length"><td class="noTableData" colspan="7">{{phrase.NoLocation}}</td></tr>
+            </tbody></table>
+        </div>
+    </div>
+</section>
+<!-- location add -->
+<section class="content" ng-show="views.profile && internalview == 'locationadd'">
+<a ng-click="showLocations(currcompany.id)" class="btn btn-danger btn-flat pull-right marginBottom15"><i class="fa fa-arrow-circle-left" aria-hidden="true"></i> {{phrase.cancelAdd}}</a>  
+  <div class="box col-xs-12">
+    <div class="box-header">
+        <h3 class="box-title">{{phrase.addingLocation}}</h3>
+    </div>
+    <div class="box-body table-responsive">
+      <form class="form-horizontal" name="addLocationForm" role="form" ng-submit="saveAddLocation()" novalidate>
+        <div class="form-group" ng-class="{'has-error': addLocationForm.locationName.$invalid}">
+          <label for="locationName" class="col-sm-2 control-label">{{phrase.locationName}} * </label>
+          <div class="col-sm-10">
+            <input type="text" name="locationName" ng-model="form.locationName" ng-minlength="4" class="form-control" required placeholder="{{phrase.locationName}}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="locationAddress" class="col-sm-2 control-label">{{phrase.locationAddress}}</label>
+          <div class="col-sm-10">
+              <input type="text" name="locationAddress" ng-model="form.locationAddress" class="form-control" placeholder="{{phrase.locationAddress}}">            
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="locationAddress" class="col-sm-2 control-label">{{phrase.CAP}}</label>
+          <div class="col-sm-10">
+              <input type="text" name="locationCAP" ng-model="form.cap" class="form-control" placeholder="{{phrase.CAP}}">            
+          </div>
+        </div>   
+        <div class="form-group">
+          <label for="locationCode" class="col-sm-2 control-label">{{phrase.calssroomLocationCode}}</label>
+          <div class="col-sm-10">
+              <input type="text" name="locationzonecode" ng-model="form.locationzonecode" class="form-control" placeholder="{{phrase.calssroomLocationCode}}">            
+          </div>
+        </div>         
+        <div class="form-group" ng-if="zones">
+          <label for="inputEmail3" class="col-sm-2 control-label">{{phrase.Zone}}</label>
+          <div class="col-sm-10">
+              <select ng-model="form.zoneid" class="form-control" id="locationaddzone">
+                  <option value=""></option>
+                  <option ng-repeat="zone in zones" ng-value="zone.id">
+                      {{zone.zonename}}<span ng-if="zone.areaname!=''"> / {{zone.areaname}}</span>
+                  </option>
+              </select>
+          </div>
+        </div>
+        <!--TODO add classroom proxymity and cost class-->
+        <!-- Classroom proxymity and cost class-->
+          <div id="class-room-travel-costs-add container col-sm-12"  ng-if="isBusinessTravelModuleActive()">
+              <div class="row">
+                  <!--<div class="col-md-1"></div>-->
+                  <div class="col-md-1 col-md-offset-1">
+                      <label style="text-align: right">{{phrase.classroomProximity}}</label>
+                  </div>
+                  <div class="col-md-2 ">
+                      <select ng-model="form.proximitylevel" class="form-control col-md-2" id="locationAddProximity">
+                          <option class="col-md-2" value="0" selected >No {{phrase.classroomProximityShort}}</option>
+                          <option class="col-md-2" ng-repeat="level in [] | range:1:maxLevelProximity" ng-value="level">
+                              {{phrase.classroomProximityShort}} {{level}}
+                          </option>
+                      </select>
+                  </div>
+                  <div class="col-md-2 ">
+                      <label style="text-align: right;display: block">{{phrase.classroomTravelCostClass}}</label>
+                  </div>
+                  <div class="col-md-5">
+                      <select ng-model="form.travelcostclassid" class="form-control" id="locationAddTravelCost">
+                            <option value="0">{{phrase.noSelection}}</option>
+                            <option ng-repeat="cost in travelCostClasses" value="{{cost.id}}">
+                                {{cost.name}}
+                            </option>
+                      </select>
+                  </div>
+                  <div class="col-md-1">
+                      <!--<a ng-disabled ="(!form.travelcostclassid) || form.travelcostclassid==0 " ng-click="showCostClassDetail()" class="btn btn-info btn-flat "title="{{phrase.details}}" tooltip style="align-content: left"><i class="fa fa-search"></i></a>-->
+                  </div>
+                  <!--<div class="col-md-1">.col-md-1</div>-->
+              </div>
+
+          </div>
+          <!-- Classroom proxymity and cost class---->
+        <div class="form-group">
+          <label for="position" class="col-sm-2 control-label">{{phrase.Description}}</label>
+          <div class="col-sm-10">
+            <textarea type="text" name="description" ng-model="form.description" class="form-control" placeholder="{{phrase.Description}}" rows="6"></textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="position" class="col-sm-2 control-label">{{phrase.contacts}}</label>
+          <div class="col-sm-10">
+            <textarea type="text" name="contacts" ng-model="form.contacts" class="form-control" placeholder="{{phrase.contacts}}" rows="4"></textarea>
+          </div>
+        </div>          
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-flat btn-success" ng-disabled="addLocationForm.$invalid"><i class="fa fa-floppy-o" aria-hidden="true"></i> {{phrase.addLocation}}</button>
+          </div>
+        </div>		
+      </form>
+    </div>
+  </div>
+</section>
+<!-- location edit -->
+<section class="content" ng-show="views.profile && internalview == 'locationedit'">
+<a ng-click="showLocations(currcompany.id)" class="btn btn-danger btn-flat pull-right marginBottom15"><i class="fa fa-arrow-circle-left" aria-hidden="true"></i> {{phrase.cancelAdd}}</a>  
+  <div class="box col-xs-12">
+    <div class="box-header">
+        <h3 class="box-title">{{phrase.addingLocation}}</h3>
+    </div>
+    <div class="box-body table-responsive">
+      <form class="form-horizontal" name="addClassform" role="form" ng-submit="saveEditLocation(form.id)" novalidate>
+        <div class="form-group" ng-class="{'has-error': addClassform.locationName.$invalid}">
+          <label for="locationName" class="col-sm-2 control-label">{{phrase.locationName}} * </label>
+          <div class="col-sm-10">
+            <input type="text" name="locationName" ng-model="form.location" ng-minlength="4" class="form-control" required placeholder="{{phrase.locationName}}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="locationAddress" class="col-sm-2 control-label">{{phrase.locationAddress}}</label>
+          <div class="col-sm-10">
+              <input type="text" name="locationAddress" ng-model="form.address" class="form-control" placeholder="{{phrase.locationAddress}}">            
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="locationAddress" class="col-sm-2 control-label">{{phrase.CAP}}</label>
+          <div class="col-sm-10">
+              <input type="text" name="locationCAP" ng-model="form.cap" class="form-control" placeholder="{{phrase.CAP}}">            
+          </div>
+        </div>   
+        <div class="form-group">
+          <label for="locationCode" class="col-sm-2 control-label">{{phrase.calssroomLocationCode}}</label>
+          <div class="col-sm-10">
+              <input type="text" name="locationzonecode" ng-model="form.locationzonecode" class="form-control" placeholder="{{phrase.calssroomLocationCode}}">            
+          </div>
+        </div>         
+        <div class="form-group" ng-if="zones">
+          <label for="inputEmail3" class="col-sm-2 control-label">{{phrase.Zone}}</label>
+          <div class="col-sm-10">
+              <select ng-model="form.zoneid" class="form-control" id="locationaddzone">
+                  <option value=""></option>
+                  <option ng-repeat="zone in zones" ng-value="zone.id">
+                      {{zone.zonename}}<span ng-if="zone.areaname!=''"> / {{zone.areaname}}</span>
+                  </option>
+              </select>
+          </div>
+        </div>
+        <!--TODO add classroom proxymity and cost class-->
+        <!-- Classroom proxymity and cost class-->
+          <div id="class-room-travel-costs-add container col-sm-12"  ng-if="isBusinessTravelModuleActive()">
+              <div class="row">
+                  <!--<div class="col-md-1"></div>-->
+                  <div class="col-md-1 col-md-offset-1">
+                      <label style="text-align: right">{{phrase.classroomProximity}}</label>
+                  </div>
+                  <div class="col-md-2 ">
+                      <select ng-model="form.proximitylevel" class="form-control col-md-2" id="locationAddProximity">
+                          <option class="col-md-2" value="0" selected >No {{phrase.classroomProximityShort}}</option>
+                          <option class="col-md-2" ng-repeat="level in [] | range:1:maxLevelProximity" ng-value="level" ng-selected="form.proximitylevel==level">
+                              {{phrase.classroomProximityShort}} {{level}}
+                          </option>
+                      </select>
+                  </div>
+                  <div class="col-md-2 ">
+                      <label style="text-align: right;display: block">{{phrase.classroomTravelCostClass}} </label>
+                  </div>
+                  <div class="col-md-5">
+                      <select  ng-model="form.travelcostclassid" class="form-control" id="locationAddTravelCost">
+                            <option value="0">{{phrase.noSelection}}</option>
+                            <option ng-selected="form.travelcostclassid==cost.id" ng-repeat="cost in travelCostClasses" ng-value="{{cost.id}}">{{cost.name}}</option>
+                      </select>
+                  </div>
+                  <div class="col-md-1">
+                      <!--
+                      <a ng-disabled ="(!form.travelcostclassid) || form.travelcostclassid==0 " ng-click="showCostClassDetail()" class="btn btn-info btn-flat "title="{{phrase.details}}" tooltip style="align-content: left"><i class="fa fa-search"></i></a>
+                      -->
+                  </div>
+              </div>
+
+          </div>
+          <!-- Classroom proxymity and cost class---->
+        <div class="form-group">
+          <label for="position" class="col-sm-2 control-label">{{phrase.Description}}</label>
+          <div class="col-sm-10">
+            <textarea type="text" name="description" ng-model="form.description" class="form-control" placeholder="{{phrase.Description}}" rows="6"></textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="position" class="col-sm-2 control-label">{{phrase.contacts}}</label>
+          <div class="col-sm-10">
+            <textarea type="text" name="contacts" ng-model="form.contacts" class="form-control" placeholder="{{phrase.contacts}}" rows="4"></textarea>
+          </div>
+        </div>          
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-flat btn-success" ng-disabled="addClassform.$invalid"><i class="fa fa-floppy-o" aria-hidden="true"></i> {{phrase.editLocation}}</button>
+          </div>
+        </div>		
+      </form>
+    </div>
+  </div>
+</section>
+<!-- invoicing -->
+<section class="content" ng-show="views.profile && internalview == 'invoicing'" autoscroll="true">
+    <div class="box col-xs-12">
+        <div class="box-header">
+            <h3 class="box-title">{{phrase.businessInvoicing}}</h3>
+        </div>    
+        <div class="box-body table-responsive">            
+            <div class="col-lg-12 col-xs-12">
+                <div class="box-body table-responsive">
+                    <div class="no-print boxtodo col-xs-3 text-center marginBottom15" style="border: 1px solid salmon; padding: 5px;" ng-class="{'divreportselected': tabs.showinvoices}" ng-click="switchInvoicing('showinvoices')">
+                        {{phrase.invoicesList}} ({{invoicingdata.invoices.length}})
+                    </div>  
+                    <div class="no-print boxtodo col-xs-3 text-center marginBottom15" style="border: 1px solid salmon; padding: 5px;" ng-class="{'divreportselected': tabs.shownextinvoices}" ng-click="switchInvoicing('shownextinvoices')">
+                        {{phrase.invoicesEmission}}
+                    </div>
+                    <div class="no-print boxtodo col-xs-3 text-center marginBottom15" style="border: 1px solid salmon; padding: 5px;" ng-class="{'divreportselected': tabs.showcompanyconditions}" ng-click="switchInvoicing('showcompanyconditions')">
+                        {{phrase.fiscalTerms}} ({{invoicingdata.companypaymentterms.length}})
+                    </div>
+                    <div class="no-print boxtodo col-xs-3 text-center marginBottom15" style="border: 1px solid salmon; padding: 5px;" ng-class="{'divreportselected': tabs.showbillingaddresses}" ng-click="switchInvoicing('showbillingaddresses')">
+                        {{phrase.billingAddresses}} ({{invoicingdata.companyinvoicesdata.length}})
+                    </div>
+                </div>
+                <!-- emitted invoices -->
+                <div ng-show="tabs.showinvoices && !editconditions">
+                    <div class="box-body table-responsive">
+                        <div class="marginBottom15">
+                            <a ng-if="selectedInvoicesCount>0" ng-click="sendCompanyInvoices()" type="button" class="btn btn-info btn-flat marginRight10"><i class="fa fa-paper-plane"></i> Invia le {{selectedInvoicesCount}} fatture al cliente per email</a>
+                            <a ng-if="selectedInvoicesCount>0" ng-click="downloadCompanyInvoices()" type="button" class="btn btn-success btn-flat"><i class="fa fa-download"></i> Scarica le {{selectedInvoicesCount}} fatture</a>
+                        </div>
+                        <table class="table table-hover">
+                            <tbody>
+                                <tr>
+                                    <th>{{phrase.invoicesNumber}}</th>
+                                    <th>{{phrase.invoiceEmittedDate}}</th>
+                                    <th>{{phrase.paymentNetAmount}}</th>
+                                    <th>{{phrase.VAT}}</th>
+                                    <th>{{phrase.invoiceTotal}}</th>
+                                    <th>{{phrase.Status}}</th>
+                                    <th>
+                                        {{phrase.downloadInvoice}}<br>
+                                    <span ng-if="filteredByPerson && invoices.length>1"><a href="/fiscalManagement/downloadZIPInv/{{searchAccountant}}" title="Scarica uno ZIP con tutte le fatture dell'utente" target="_blank"><img src="/assets/img/file-zip-icon-13.png"> Fatture</a></span>
+                                    </th>
+                                </tr>
+                            <tr ng-repeat="invoice in invoicingdata.invoices">
+                                <td>
+                                    <input type="checkbox" ng-true-value="1" ng-false-value="0" ng-model="invoice.selected" ng-selected="selectedInvoice()"> {{invoice.number}}
+                                </td>
+                                <td>{{invoice.emissiondate | date: 'dd/MM/yyyy'}}</td>
+                                <td>{{invoice.nettotal}} {{currencySymbol}}</td>
+                                <td>{{invoice.taxtotal}} {{currencySymbol}}</td>
+                                <td>{{invoice.invoicetotal}} {{currencySymbol}}</td>
+                                <td>
+                                    <span style="color: green" ng-if="invoice.paid == 1"><i class="fa fa-usd"></i> {{phrase.paid}}</span>
+                                    <span ng-if="!invoice.paid || invoice.paid==0">
+                                        <i class="fa fa-usd"></i> {{phrase.paymentExpiration}} {{invoice.expiredate | date: 'dd/MM/yyyy'}}
+                                    </span>
+                                </td>
+                                <td class='no-print'>
+                                    <a href="fiscalManagement/printPDF/{{invoice.id}}" target="_blank" type="button" class="btn btn-success btn-flat" title="{{phrase.downloadInvoice}}" tooltip>
+                                        <i class="fa fa-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr ng-show="!invoicingdata.invoices.length"><td class="noTableData" colspan="7">{{phrase.noInvoiceIssued}}</td></tr>
+                        </tbody></table>
+                    </div>
+                </div>      
+                <!-- emitting invoices -->
+                <div ng-if="tabs.shownextinvoices && !editconditions" ng-controller="companiesInvoicingController">
+                    <div ng-include src="getInvoicingTemplate()" onload="clearInvoicingdata()"></div>
+                </div>                
+                <!-- conditions -->
+                <div ng-show="tabs.showcompanyconditions && !editconditions">
+                    <div class="box-body table-responsive">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>{{phrase.Reference}}</th>
+                                <th>{{phrase.from}}</th>
+                                <th>{{phrase.to}}</th>
+                                <th>{{phrase.fiscalConditions}}</th>
+                                <th style="text-align: center;">{{phrase.Operations}}</th>
+                            </tr>
+                            <tr ng-repeat="companyterm in invoicingdata.companypaymentterms">
+                                <td>
+                                    {{companyterm.rifcondizioni}}
+                                </td>
+                                <td>
+                                    <span ng-if="companyterm.validfrom">{{companyterm.validfrom | date : 'dd/MM/yyyy'}}</span>
+                                    <span ng-if="!companyterm.validfrom">--</span>
+                                </td>
+                                <td>
+                                    <span ng-if="companyterm.validto">{{companyterm.validto | date : 'dd/MM/yyyy'}}</span>
+                                    <span ng-if="!companyterm.validto">--</span>
+                                </td>
+                                <td>
+                                    <div ng-if="companyterm.conditions" style="border: 1px solid lightgray; border-radius: 4px; padding: 5px; overflow-y: auto; max-height: 100px">
+                                        <div ng-if="companyterm.conditions.subscriptionfee">
+                                            {{phrase.studentSubscriptionFee}}:
+                                            <div>
+                                                <i class="fa fa-check-circle-o"></i> {{companyterm.conditions.subscriptionfee}}{{currencySymbol}} {{getInvoicingType(companyterm.conditions.type)}}
+                                            </div>
+                                            Condizioni economiche:
+                                            <div ng-repeat="rate in companyterm.conditions.rates">
+                                                <i class="fa fa-check-circle-o"></i> {{getRateLabel(companyterm.conditions.type, rate)}}
+                                            </div>
+                                        </div>
+                                        <div ng-if="companyterm.travelclasses">
+                                            {{phrase.travelCostClassCost}}:
+                                            <div ng-repeat="travelclass in companyterm.conditions.travelclasses">
+                                                <i class="fa fa-check-circle-o"></i> {{travelclass.name}} / {{travelclass.cost}}{{currencySymbol}}
+                                            </div>
+                                        </div>
+                                        <div ng-if="companyterm.conditions">
+                                            {{phrase.billingMethod}}:
+                                            <div ng-repeat="mode in companyterm.conditions.invoicing">
+                                                <i class="fa fa-check-circle-o"></i> {{getModalityLabel(mode)}}
+                                            </div>
+                                            <div ng-if="companyterm.conditions.type == 'hours'">
+                                                <i class="fa fa-check-circle-o"></i> {{phrase.couponActivationManual | lowercase}}, {{phrase.to | lowercase}} {{phrase.Consumptive | lowercase}}
+                                            </div>
+                                        </div>
+                                        <div ng-if="companyterm.conditions">
+                                            {{phrase.paymentTerms}}:
+                                            <div>
+                                                <i class="fa fa-check-circle-o"></i> {{companyterm.terms.label}}<br>
+                                                <i>{{companyterm.terms.description}}</i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="!companyterm.conditions" style="text-align: center;">
+                                        {{phrase.notAssigned | uppercase}}
+                                    </div>
+                                </td>
+                                <td style="text-align: center;">
+                                    <a ng-click="goEditConditions(companyterm)" type="button" class="btn btn-info btn-flat" title="{{phrase.Edit}}" tooltip><i class="fa fa-pencil"></i></a>
+                                    <a ng-click="removeConditions(companyterm)" type="button" class="btn btn-danger btn-flat" title="{{phrase.Remove}}" tooltip><i class="fa fa-trash-o"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                            	<td colspan="4"></td>
+                            	<td style="text-align: center;">
+                                    <a ng-click="goEditConditions()" type="button" class="btn btn-success btn-flat" title="{{phrase.Add}}" tooltip><i class="fa fa-plus-square"></i></a>
+                            	</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>             
+                <!-- billing addresses -->
+                <div ng-show="tabs.showbillingaddresses && !editinvoicing && !addinginvoicing">
+                    <div class="box-body table-responsive">
+                        <div class="form-group">
+                          <label for="inputEmail3" class="col-sm-2 control-label"></label>
+                          <div class="col-sm-10">
+                              <a ng-click="editCompanyInvoicing()" type="button" class="btn btn-success btn-flat pull-right marginBottom15"><i class="fa fa-plus-square"></i> {{phrase.addBillingAddress}}</a>
+                          </div>
+                        </div>
+                        <table class="table table-hover">
+                            <tr>
+                                <th>{{phrase.businessName}}</th>
+                                <th>{{phrase.Address}}</th>
+                                <th>{{phrase.VATNumber}}/{{phrase.taxCode}}</th>
+                                <th style="text-align: center;">{{phrase.Operations}}</th>
+                            </tr>
+                            <tr ng-repeat="companydata in invoicingdata.companyinvoicesdata" ng-class="{'archived': companydata.dismissed==1}">
+                                <td>
+                                    <i ng-if="companydata.headquarter==1" class="fa fa-building-o" aria-hidden="true"></i>
+                                    {{companydata.name}}<br>
+                                    <span ng-if="companydata.headquarter==1"><i>{{phrase.locationHeadaddress}}</i></span>
+                                </td>
+                                <td>
+                                    <p>
+                                        {{companydata.name}}<br>
+                                        {{companydata.address}}<br>
+                                        {{companydata.cap}} {{companydata.city}} {{companydata.province}}<br>
+                                    </p>
+                                </td>
+                                <td>
+                                    <span ng-if="companydata.vat">{{phrase.VATNumber}} {{companydata.vat}} <i ng-if="companydata.vatcodevalid==1" class="fa fa-check-circle-o" aria-hidden="true"></i><br></span>
+                                    <span ng-if="companydata.taxcode">{{phrase.taxCode}} {{companydata.taxcode}} <i ng-if="companydata.taxcodevalid==1" class="fa fa-check-circle-o" aria-hidden="true"></i><br></span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <a ng-click="editCompanyInvoicing(companydata)" type="button" ng-hide="companydata.dismissed==1" class="btn btn-info btn-flat" title="{{phrase.Edit}}" tooltip><i class="fa fa-pencil"></i></a>
+                                    <a ng-click="disableCompanyInvoicing(companydata)" type="button" ng-if="!companydata.headquarter" ng-hide="companydata.dismissed==1" class="btn btn-warning btn-flat" title="{{phrase.disableBillingAddress}}" tooltip><i class="fa fa-power-off" aria-hidden="true"></i></a>
+                                    <a ng-click="removeCompanyInvoicing(companydata)" ng-hide="companydata.headquarter==1" type="button" class="btn btn-danger btn-flat" title="{{phrase.Remove}}" tooltip><i class="fa fa-trash-o"></i></a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- inserimento indirizzo di fatturazione -->
+            <div class="col-lg-12 col-xs-12" ng-show="addinginvoicing">
+                <div>
+                    <div class="box-body table-responsive">
+                        <div class="form-group">
+                          <label for="inputEmail3" class="col-sm-2 control-label"></label>
+                          <div class="col-sm-10">
+                              <a ng-click="switchInvoicing('showbillingaddresses')" class="btn btn-danger btn-flat pull-right marginBottom15"><i class="fa fa-arrow-circle-left" aria-hidden="true"></i> {{phrase.Cancel}}</a> 
+                          </div>
+                        </div>                
+                        <form class="form-horizontal" ng-submit="saveAddInvoicing()" name="addSupplier" role="form" novalidate>
+                            <ng-include src="getSupplierTemplate('add')"></ng-include>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- modifica indirizzo di fatturazione -->
+            <div class="col-lg-12 col-xs-12" ng-show="editinvoicing">
+                <div>
+                    <div class="box-body table-responsive">
+                        <div class="form-group">
+                          <label for="inputEmail3" class="col-sm-2 control-label"></label>
+                          <div class="col-sm-10">
+                              <a ng-click="switchInvoicing('showbillingaddresses')" class="btn btn-danger btn-flat pull-right marginBottom15"><i class="fa fa-arrow-circle-left" aria-hidden="true"></i> {{phrase.Cancel}}</a> 
+                          </div>
+                        </div>                
+                        <form class="form-horizontal" ng-submit="saveEditInvoicing()" name="addSupplier" role="form" novalidate>
+                            <ng-include src="getSupplierTemplate('edit')"></ng-include>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- modifica termini economici -->
+            <div class="col-lg-9 col-xs-6" ng-show="editconditions">
+                <form class="form-horizontal" name="conditionsForm" role="form" novalidate>
+                  <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-9">
+                        <h3>{{phrase.onlineContractTerms}}</h3>
+                        <small>
+                            La fatturazione aziendale viene effettuata sulla base delle ore di lezione che si trovano sul calendario, indipendentemente dal fatto che il docente o la segreteria abbiano gi&agrave; messo la presenza o meno.<br>
+                        </small>                        
+                    </div>
+                  </div>
+                  <div class="form-group" ng-class="{'has-error': conditionsForm.rifcondizioni.$invalid}">
+                    <label for="inputEmail3" class="col-sm-3 control-label">{{phrase.Reference}}*</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="rifcondizioni" ng-model="form.rifcondizioni" class="form-control" required>
+                    </div>
+                  </div>
+                  <!-------------------------------------------->
+                  <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-3 control-label">{{phrase.Date}} {{phrase.Start | lowercase}}</label>
+                    <div class="col-sm-9">
+                        <datepicker date-format="dd/MM/yyyy" style="max-width:300px;" date-week-start-day="1">
+                            <input name="validfrom" ng-model="form.validfrom" type="text" placeholder="{{phrase.Date}} {{phrase.Start | lowercase}}"/>
+                        </datepicker>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-3 control-label">{{phrase.Date}} {{phrase.Stop | lowercase}}</label>
+                    <div class="col-sm-9">
+                        <datepicker date-format="dd/MM/yyyy" style="max-width:300px;" date-week-start-day="1">
+                            <input name="validto" ng-model="form.validto" type="text" placeholder="{{phrase.Date}} {{phrase.Stop | lowercase}}"/>
+                        </datepicker>
+                    </div>
+                  </div>
+                  <!-------------------------------------------->
+                  <div class="form-group" ng-class="{'has-error': conditionsForm.type.$invalid}">
+                    <label for="inputEmail3" class="col-sm-3 control-label">{{phrase.billingMethod}}*</label>
+                    <div class="col-sm-9">
+                        <select name="type" ng-model="form.type" class="form-control" required>
+                        	<option value="" disabled>-- {{phrase.billingMethod}} --</option>
+                            <option value="person">{{phrase.to}} {{phrase.Person | lowercase}}</option>
+                            <option value="class">{{phrase.to}} {{phrase.course | lowercase}}</option>
+                            <option value="hours">{{phrase.to}} {{phrase.hours | lowercase}} {{phrase.to | lowercase}} {{phrase.Consumptive | lowercase}}</option>
+                        </select>
+                    </div>
+                  </div>
+                  <div class="form-group" ng-class="{'has-error': conditionsForm.subscriptionfee.$invalid}">
+                    <label for="inputEmail3" class="col-sm-3 control-label">{{phrase.registrationFee}}</label>
+                    <div class="col-sm-9">
+                        <input type="number" name="subscriptionfee" ng-model="form.subscriptionfee" class="form-control" required><br>
+                        <small ng-if="form.type == 'person'">* {{phrase.registrationFee | lowercase}} {{phrase.to | lowercase}} {{phrase.Person | lowercase}}</small>
+                        <small ng-if="form.type == 'class'">* {{phrase.registrationFee | lowercase}} {{phrase.to | lowercase}} {{phrase.course | lowercase}}</small>
+                        <small ng-if="form.type == 'hours'">* {{phrase.registrationFee | lowercase}} {{phrase.to | lowercase}} {{phrase.hours | lowercase}} {{phrase.to | lowercase}} {{phrase.Consumptive | lowercase}}</small>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputPassword3" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-1">
+                        {{phrase.subscribersMinimum}}
+                    </div>
+                    <div class="col-sm-1">
+                        {{phrase.subscribersMaximum}}
+                    </div>
+                    <div class="col-sm-1" ng-hide="form.type == 'hours'">
+                        {{phrase.hours}}
+                    </div>
+                    <div class="col-sm-2">
+                        {{phrase.teaching}}
+                    </div>                    
+                    <div class="col-sm-2">
+                        {{phrase.Cost}}
+                    </div>
+                  </div>
+                  <div class="form-group" ng-repeat="rate in form.rates track by $index" ng-class="{'condition-removed': rate.removed==1}">
+                      <label for="inputPassword3" class="col-sm-3 control-label"><span ng-if="$first">{{phrase.attendanceCosts}}</span></label>
+                    <div class="col-sm-1">
+                        <input type="text" name="min" class="form-control" ng-model="rate.min" placeholder="{{phrase.Minimum}}">
+                    </div>                      
+                    <div class="col-sm-1">
+                        <input type="text" name="max" class="form-control" ng-model="rate.max" placeholder="{{phrase.Maximum}}">
+                    </div>
+                    <div class="col-sm-1" ng-hide="form.type == 'hours'">
+                        <input type="number" name="hours" class="form-control" ng-model="rate.hours" placeholder="{{phrase.hours}}">
+                    </div>
+                    <div class="col-sm-2">
+                        <select class="form-control" ng-model="rate.teachingid">
+                            <option value="">-- qualunque --</option>                            
+                            <option ng-repeat="teaching in invoicingdata.teachings" ng-selected="teaching.id==rate.teachingid" value="{{teaching.id}}">{{teaching.teaching}}</option>
+                        </select>
+                    </div>                                      
+                    <div class="col-sm-2" style="white-space: nowrap;">
+                        <input type="number" name="rate" class="form-control" ng-model="rate.rate" placeholder="{{phrase.Cost}}"> <b>{{currencySymbol}}</b><br>
+                        <span ng-if="form.type == 'person'">{{phrase.to | lowercase}} {{phrase.Person | lowercase}}</span>
+                        <span ng-if="form.type == 'class'">{{phrase.to | lowercase}} {{phrase.course | lowercase}}</span>
+                        <span ng-if="form.type == 'hours'">{{phrase.to | lowercase}} {{phrase.hour | lowercase}}</span>
+                    </div>                
+                    <label for="inputPassword3" class="col-sm-2 control-label text-left" style="text-align: left;">
+                        <span ng-if="!$last && !rate.removed == 1">
+                            <a ng-click="removeCondition($index)" type="button" class="btn btn-danger btn-flat"><i class="fa fa-trash-o"></i></a>
+                        </span>
+                        <span ng-if="!$last && rate.removed == 1">
+                            <a ng-click="cancelremoveCondition($index)" type="button" class="btn btn-info btn-flat"><i class="fa fa-reply-all"></i></a>
+                        </span>
+                        <span ng-if="$last">
+                            <a ng-click="addCondition()" type="button" class="btn btn-success btn-flat"><i class="fa fa-plus-square"></i></a>
+                        </span>
+                    </label>
+                  </div>
+                  <div class="form-group" ng-if="invoicingdata.travelclasses">
+                        <label for="inputEmail3" class="col-sm-3 control-label"></label>
+                        <div class="col-sm-9">
+                            <h3>{{phrase.travelCostClassCost}}</h3>
+                            <small>
+                                La fatturazione delle trasferte avviene sulla base di massimo una trasferta a giornata per docente, per classe di trasferta.<br>
+                                In caso di pi&ugrave; corsi svolti nella giornata per medesimo docente e classe, il costo di trasferta viene ripartito in parti uguali per singolo corso.
+                            </small>
+                        </div>
+                  </div>    
+                  <div class="form-group" ng-if="form.type != 'hours' || true" ng-repeat="travelclass in form.travelclasses track by $index">
+                    <label for="inputPassword3" class="col-sm-3 control-label">{{travelclass.name}}</label>
+                    <ng-form name="urlForm">
+                        <div class="col-sm-1" ng-class="{'has-error': urlForm.travelcost.$invalid}">
+                            <input name="travelcost" type="number" class="form-control" ng-model="travelclass.cost">
+                        </div>
+                    </ng-form>
+                    <div class="col-sm-8">
+                        {{currency}}
+                    </div>                    
+                  </div>                    
+                  <div class="form-group">
+                        <label for="inputEmail3" class="col-sm-3 control-label"></label>
+                        <div class="col-sm-10">
+                            <h3>{{phrase.billingMethod}}</h3>
+                        </div>
+                  </div>    
+                  <div class="form-group" ng-if="form.type == 'hours'">
+                    <label for="inputPassword3" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-9">
+                        La fatturazione delle ore a consuntivo avverr&agrave; con frequenza manuale
+                    </div>      
+                  </div>           
+                  <div class="form-group" ng-if="form.type != 'hours'" ng-repeat="invoicing in form.invoicing track by $index">
+                    <label for="inputPassword3" class="col-sm-3 control-label">{{phrase.billingSteps}}</label>
+                    <div class="col-sm-3">
+                        <select class="form-control" name="advancement{{$index}}" ng-model="invoicing.when" required>
+                            <option value="none">-- {{phrase.any}} --</option>
+                            <option value="created">Corso creato</option>
+                            <option value="start">{{phrase.Start}} {{phrase.course | lowercase}}</option>
+                            <option value="20">20% {{phrase.Progress | lowercase}}</option>
+                            <option value="25">25% {{phrase.Progress | lowercase}}</option>
+                            <option value="30">30% {{phrase.Progress | lowercase}}</option>
+                            <option value="33">33% {{phrase.Progress | lowercase}}</option>
+                            <option value="40">40% {{phrase.Progress | lowercase}}</option>
+                            <option value="50">50% {{phrase.Progress | lowercase}}</option>
+                            <option value="60">60% {{phrase.Progress | lowercase}}</option>
+                            <option value="66">66% {{phrase.Progress | lowercase}}</option>
+                            <option value="70">70% {{phrase.Progress | lowercase}}</option>
+                            <option value="75">75% {{phrase.Progress | lowercase}}</option>
+                            <option value="80">80% {{phrase.Progress | lowercase}}</option>
+                            <option value="end">{{phrase.Stop}} {{phrase.course | lowercase}}</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-3" style="white-space: nowrap;">
+                        <input type="text" name="percentage{{$index}}" class="form-control" ng-change="calculateInvoicingPerc()" ng-model="invoicing.what" placeholder="{{phrase.percentageBilled}}" required> %
+                    </div>                    
+                  </div>                    
+                  <div class="form-group" ng-if="form.type!='hours' && prescheduledpercentage<100">
+                    <label for="inputPassword3" class="col-sm-3 control-label">{{phrase.billingSteps}}</label>
+                    <div class="col-sm-3" ng-class="{'has-error': conditionsForm.advancement1.$invalid}">
+                        <select class="form-control" name="advancement1" ng-model="form.advancement1" required>
+                            <option value="none">-- {{phrase.any}} --</option>
+                            <option value="created">Corso creato</option>
+                            <option value="start">{{phrase.Start}} {{phrase.course | lowercase}}</option>
+                            <option value="20">20% {{phrase.Progress | lowercase}}</option>
+                            <option value="25">25% {{phrase.Progress | lowercase}}</option>
+                            <option value="30">30% {{phrase.Progress | lowercase}}</option>
+                            <option value="33">33% {{phrase.Progress | lowercase}}</option>
+                            <option value="40">40% {{phrase.Progress | lowercase}}</option>
+                            <option value="50">50% {{phrase.Progress | lowercase}}</option>
+                            <option value="60">60% {{phrase.Progress | lowercase}}</option>
+                            <option value="66">66% {{phrase.Progress | lowercase}}</option>
+                            <option value="70">70% {{phrase.Progress | lowercase}}</option>
+                            <option value="75">75% {{phrase.Progress | lowercase}}</option>
+                            <option value="80">80% {{phrase.Progress | lowercase}}</option>
+                            <option value="end">{{phrase.Stop}} {{phrase.course | lowercase}}</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-3" ng-class="{'has-error': conditionsForm.percentage1.$invalid}" style="white-space: nowrap;">
+                        <input type="number" name="percentage1" class="form-control" ng-model="form.percentage1" ng-change="calculateInvoicingPerc()" placeholder="{{phrase.percentageBilled}}" ng-required="form.advancement1 != 'none'"> %
+                    </div>                    
+                  </div>
+                  <div class="form-group" ng-if="form.advancement1 && form.percentage1 && prescheduledpercentage + form.percentage1 < 100">
+                    <label for="inputPassword3" class="col-sm-3 control-label">{{phrase.billingSteps}}</label>
+                    <div class="col-sm-3" ng-class="{'has-error': conditionsForm.advancement2.$invalid}">
+                        <select class="form-control" name="advancement2" ng-model="form.advancement2" required>
+                            <option value="created">Corso creato</option>
+                            <option value="start">{{phrase.Start}} {{phrase.course | lowercase}}</option>
+                            <option value="20">20% {{phrase.Progress | lowercase}}</option>
+                            <option value="25">25% {{phrase.Progress | lowercase}}</option>
+                            <option value="30">30% {{phrase.Progress | lowercase}}</option>
+                            <option value="33">33% {{phrase.Progress | lowercase}}</option>
+                            <option value="40">40% {{phrase.Progress | lowercase}}</option>
+                            <option value="50">50% {{phrase.Progress | lowercase}}</option>
+                            <option value="60">60% {{phrase.Progress | lowercase}}</option>
+                            <option value="66">66% {{phrase.Progress | lowercase}}</option>
+                            <option value="70">70% {{phrase.Progress | lowercase}}</option>
+                            <option value="75">75% {{phrase.Progress | lowercase}}</option>
+                            <option value="80">80% {{phrase.Progress | lowercase}}</option>
+                            <option value="end">{{phrase.Stop}} {{phrase.course | lowercase}}</option>
+                        </select>
+                    </div>                                    
+                    <div class="col-sm-3" ng-class="{'has-error': conditionsForm.percentage2.$invalid}" style="white-space: nowrap;">
+                        <input type="number" name="percentage2" class="form-control" ng-model="form.percentage2" ng-change="calculateInvoicingPerc()" placeholder="{{phrase.percentageBilled}}" required> %
+                    </div>                    
+                  </div>
+                  <div class="form-group" ng-if="form.advancement2 && form.percentage2 && prescheduledpercentage+form.percentage1+form.percentage2<100">
+                    <label for="inputPassword3" class="col-sm-3 control-label">{{phrase.billingSteps}}</label>
+                    <div class="col-sm-3" ng-class="{'has-error': conditionsForm.advancement3.$invalid}">
+                        <select class="form-control" name="advancement3" ng-model="form.advancement3" required>
+                            <option value="created">Corso creato</option>
+                            <option value="start">{{phrase.Start}} {{phrase.course | lowercase}}</option>
+                            <option value="20">20% {{phrase.Progress | lowercase}}</option>
+                            <option value="25">25% {{phrase.Progress | lowercase}}</option>
+                            <option value="30">30% {{phrase.Progress | lowercase}}</option>
+                            <option value="33">33% {{phrase.Progress | lowercase}}</option>
+                            <option value="40">40% {{phrase.Progress | lowercase}}</option>
+                            <option value="50">50% {{phrase.Progress | lowercase}}</option>
+                            <option value="60">60% {{phrase.Progress | lowercase}}</option>
+                            <option value="66">66% {{phrase.Progress | lowercase}}</option>
+                            <option value="70">70% {{phrase.Progress | lowercase}}</option>
+                            <option value="75">75% {{phrase.Progress | lowercase}}</option>
+                            <option value="80">80% {{phrase.Progress | lowercase}}</option>
+                            <option value="end">{{phrase.Stop}} {{phrase.course | lowercase}}</option>
+                        </select>
+                    </div>                              
+                    <div class="col-sm-3" ng-class="{'has-error': conditionsForm.percentage3.$invalid}" style="white-space: nowrap;">
+                        <input type="number" name="percentage3" class="form-control" ng-model="form.percentage3" ng-change="calculateInvoicingPerc()" placeholder="{{phrase.percentageBilled}}" required> %
+                    </div>                    
+                  </div>
+                  <div class="form-group" ng-if="form.advancement3 && form.percentage3 && prescheduledpercentage+form.percentage1+form.percentage2+form.percentage3<100">
+                    <label for="inputPassword3" class="col-sm-3 control-label">{{phrase.billingSteps}}</label>
+                    <div class="col-sm-3" ng-class="{'has-error': conditionsForm.advancement4.$invalid}">
+                        <select class="form-control" name="advancement4" ng-model="form.advancement4" required>
+                            <option value="created">Corso creato</option>
+                            <option value="start">{{phrase.Start}} {{phrase.course | lowercase}}</option>
+                            <option value="20">20% {{phrase.Progress | lowercase}}</option>
+                            <option value="25">25% {{phrase.Progress | lowercase}}</option>
+                            <option value="30">30% {{phrase.Progress | lowercase}}</option>
+                            <option value="33">33% {{phrase.Progress | lowercase}}</option>
+                            <option value="40">40% {{phrase.Progress | lowercase}}</option>
+                            <option value="50">50% {{phrase.Progress | lowercase}}</option>
+                            <option value="60">60% {{phrase.Progress | lowercase}}</option>
+                            <option value="66">66% {{phrase.Progress | lowercase}}</option>
+                            <option value="70">70% {{phrase.Progress | lowercase}}</option>
+                            <option value="75">75% {{phrase.Progress | lowercase}}</option>
+                            <option value="80">80% {{phrase.Progress | lowercase}}</option>
+                            <option value="end">{{phrase.Stop}} {{phrase.course | lowercase}}</option>
+                        </select>
+                    </div>                                   
+                    <div class="col-sm-3" ng-class="{'has-error': conditionsForm.percentage4.$invalid}" style="white-space: nowrap;">
+                        <input type="number" name="percentage4" class="form-control" ng-model="form.percentage4" ng-change="calculateInvoicingPerc()" placeholder="{{phrase.percentageBilled}}" required> %
+                    </div>                    
+                  </div>
+                  <div class="form-group" ng-if="(form.type=='person' || form.type=='class') && fullPrescheduledpercentage!=100">
+                      <span class="col-sm-offset-2 col-sm-10" style="color: orangered">Attenzione! La percentuale totale deve essere il 100% ({{fullPrescheduledpercentage}}%)</span>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-9">
+                        <h3>{{phrase.paymentTerms}}</h3>
+                    </div>
+                  </div>                     
+                  <div class="form-group" ng-class="{'has-error': conditionsForm.paymenttermsid.$invalid}">
+                    <label for="inputPassword3" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-9">
+                      	<select name="paymenttermsid" class="form-control" ng-model="form.paymenttermsid" required>
+                      		<option value="" disabled>-- {{phrase.paymentTerms}} --</option>
+                          	<option ng-repeat="term in invoicingdata.paymentterms" value="{{term.id}}">{{term.label}}</option>
+                      	</select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-offset-3 col-sm-10">
+                      <a ng-click="saveConditions()" ng-disabled="conditionsForm.$invalid || ((form.type=='person' || form.type=='class') && fullPrescheduledpercentage!=100)" type="button" class="btn btn-info btn-flat"><i class="fa fa-floppy-o"></i> {{phrase.saveSettings}}</a>
+                      <a ng-click="cancelCompanyConditions()" type="button" class="btn btn-danger btn-flat"><i class="fa fa-undo"></i> {{phrase.cancel}}</a>
+                    </div>
+                  </div>
+                </form>                
+            </div>            
+            <!-- dati correnti -->
+            <div class="col-lg-3 col-xs-6 pull-right" ng-if="false">
+                <!-- indirizzo di fatturazione -->
+                <div class="col-lg-12 col-xs-12 pull-right">
+                    <div class="small-box bg-aqua">
+                        <div class="inner">
+                            <h4>
+                                Indirizzo di fatturazione <i style="cursor: pointer;" class="fa fa-pencil-square-o" ng-click="editCompanyInvoicing()"></i>
+                            </h4>
+                            <p>
+                                {{invoicingdata.invoicedata.businessname}}<br>
+                                {{invoicingdata.invoicedata.address}}<br>
+                                {{invoicingdata.invoicedata.cap}} {{invoicingdata.invoicedata.city}} {{invoicingdata.invoicedata.province}}<br>
+                                <span ng-if="invoicingdata.invoicedata.vatnumber">P.IVA {{invoicingdata.invoicedata.vatnumber}}<br></span>
+                                <span ng-if="invoicingdata.invoicedata.taxcode">C.F. {{invoicingdata.invoicedata.taxcode}}<br></span>
+                            </p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa fa-sm fa-id-card-o"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<modal visible="showModal"><div ng-bind-html="modalContent" compile-template></div></modal>
+<modal visible="showModalCode">
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <td colspan="2">
+                    <img src="/assets/img/logo_scuola_semplice.png">
+                </td>
+            </tr>
+            <tr>
+                <td>{{phrase.FullName}}</td>
+                <td>{{form.fullName}}</td>
+            </tr>
+            <tr>
+                <td>{{phrase.email}}</td>
+                <td>{{form.email}}</td>
+            </tr>
+            <tr>
+                <td>{{phrase.mobileNo}}</td>
+                <td>{{form.mobileNo}}</a></td>
+            </tr>                          
+            <tr>
+                <td>{{phrase.appInvitationStatus}}</td>
+                <td><span style="color: red; font-weight: bold; font-size: 18px;">{{phrase.SMSSentOn}} {{form.time}}</span></td>
+            </tr>
+            <tr>
+                <td>{{phrase.appConnectionStatus}}</td>
+                <td>
+                    <span ng-if="form.connected=='1'" style="color: green">{{phrase.appConnected}}!&nbsp;
+                        <a ng-click="sendTestNotitfication(form.id)" type="button" class="btn btn-info btn-flat" title="" tooltip="" data-original-title="{{phrsae.sendtestnotify}}"><i class="fa fa-paper-plane"></i></a>
+                    </span>
+                    <span ng-if="form.connected=='0'" style="color: red">
+                        {{phrase.appNotConnected}}&nbsp;
+                        <a href="" ng-if="false" ng-click="verifyAppStatus(form.id)"><img src="assets/img/refresh-icon.png" title="{{phrase.appVerifyConnection}}"></a>
+                        <img ng-if="appStatusLoading" src="assets/img/ajax-loader-small.gif" style="float: right; padding-top: 4px;">
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div ng-bind-html="modalContentCode"></div>
+    <i class="fa fa-info-circle"></i> {{phrase.appSSInstallInfo}}.<br>
+    <i class="fa fa-info-circle"></i> {{phrase.appSSAddMerchantInfo}}   
+</modal>
+
+<modal visible="costClassDetailVisible">
+    <div id="detail-cost-class-selected-on-add" class="container" style="height: 42vh">
+        <div class="row">
+            <div class="col-md-2">
+                <label style="text-align: right">{{phrase.travelCostClassName}}</label>
+            </div>
+            <div class="col-md-4">
+                <p style="text-align: left" >{{detailCostClass.name}}</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <label style="text-align: right">{{phrase.travelCostClassDescription}}</label>
+            </div>
+            <div class="col-md-4">
+                <p style="text-align: left">{{detailCostClass.description}}</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <label style="text-align: right">{{phrase.travelCostClassCost}}</label>
+            </div>
+            <div class="col-md-4">
+                <p style="text-align: left">{{detailCostClass.cost}}</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <label style="text-align: right">{{phrase.travelCostClassNote}}</label>
+            </div>
+            <div class="col-md-4">
+                <p style="text-align: left">{{detailCostClass.note}}</p>
+            </div>
+        </div>
+
+    </div>
+</modal>
